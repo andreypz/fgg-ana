@@ -10,7 +10,7 @@ import makeHTML as ht
 gROOT.SetBatch()
 
 parser = OptionParser(usage="usage: %prog ver [options -c, -e, -p, -m]")
-parser.add_option("-c","--cut",   dest="cut", type="int", default=8, help="Plots after a certain cut")
+parser.add_option("-c","--cut",   dest="cut", type="int", default=3, help="Plots after a certain cut")
 parser.add_option("--mass", dest="mass", type="int", default=125,    help="Signal sample (mass)")
 parser.add_option("-m","--merge", dest="merge",action="store_true", default=False, help="Do merging?")
 
@@ -123,7 +123,10 @@ if __name__ == "__main__":
   elif opt.zjp: sigFile = sigFileZjp
   else:         sigFile = sigFileGG
 
-  dataFile = TFile(hPath+"/output_DoubleEG.root","OPEN")
+  if sel=='mu':
+    dataFile = TFile(hPath+"/output_DoubleMuon.root","OPEN")
+  elif sel=='el':
+    dataFile = TFile(hPath+"/output_DoubleEG.root","OPEN")
 
 
   yields_data = u.getYields(dataFile)

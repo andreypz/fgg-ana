@@ -100,10 +100,10 @@ def getColors(sample):
   return [l,f]
 
 def getTotalEvents(f):
-  #ev = f.Get("Counts/evt_byCut")
-  ev = f.Get("Counts/evt_byCut_raw")
+  #ev = f.Get("Counts/evt_byCut_raw")
+  #Nev = Nev*(1-0.1649)
+  ev = f.Get("Counts/evt_byCut")
   Nev = ev.GetBinContent(1)
-  Nev = Nev*(1-0.1649)
   return Nev
 
 
@@ -741,12 +741,12 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
       if 'J/Psi' in name3:
         lat.DrawLatex(0.18,0.95, 'H #rightarrow J/#Psi#gamma#rightarrow#mu#mu#gamma')
       else:
-        if 'el' in getSelection():
+        if 'del-el' in getSelection():
           lat.DrawLatex(0.18,0.95, 'H #rightarrow#gamma*#gamma#rightarrow ee#gamma')
-        elif 'mu' in getSelection():
+        elif 'del-mu' in getSelection():
           lat.DrawLatex(0.18,0.95, 'H #rightarrow#gamma*#gamma#rightarrow#mu#mu#gamma')
         else:
-          lat.DrawLatex(0.18,0.95, 'laLala')
+          lat.DrawLatex(0.18,0.95, '')
 
       if 'LHE' in histoName:
         CMS_lumi(c1, 2, 11,"Simulation")

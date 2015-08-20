@@ -14,11 +14,11 @@ void FggHistMakerBase::MakeMuonPlots(const flashgg::Muon& mu, string dir)
   //hists->fill1DHist(mu.PixelLayersWithMeasurement(),dir+"_mu_PixelLayersWithMeasurement",";PixelLayersWithMeasurement",  15,0,15, 1, dir);
   //hists->fill1DHist(mu.TrackLayersWithMeasurement(),dir+"_mu_TrackLayersWithMeasurement",";TrackerLayersWithMeasurement",30,0,30, 1, dir);
   //hists->fill1DHist(mu.NumberOfMatchedStations(),   dir+"_mu_NumberOfMatchedStations", ";NumberOfMatchedStations", 10, 0,10, 1, dir);
-  hists->fill1DHist(mu.numberOfValidHits(),     dir+"_mu_NumberOfValidHits",   ";NumberOfValidHits",   60, 0,60, 1, dir);
+  //hists->fill1DHist(mu.numberOfValidHits(),     dir+"_mu_NumberOfValidHits",   ";NumberOfValidHits",   60, 0,60, 1, dir);
   //hists->fill1DHist(mu.NumberOfValidTrackerHits(),  dir+"_mu_NumberOfValidTrackerHits",";NumberOfValidTrackerHits",40, 0,40, 1, dir);
   //hists->fill1DHist(mu.NumberOfValidPixelHits(),    dir+"_mu_NumberOfValidPixelHits",  ";NumberOfValidPixelHits",  15, 0,15, 1, dir);
   //hists->fill1DHist(mu.NormalizedChi2_tracker(),    dir+"_mu_NormalizedChi2_tracker",  ";NormalizedChi2_tracker", 100, 0,4,  1, dir);
-  hists->fill1DHist(mu.normChi2(),            dir+"_mu_NormalizedChi2",          ";NormalizedChi2",         100, 0,4,  1, dir);
+  //hists->fill1DHist(mu.normChi2(),            dir+"_mu_NormalizedChi2",          ";NormalizedChi2",         100, 0,4,  1, dir);
   //hists->fill1DHist(mu.Dxy(&_pv), dir+"_mu_dxy", ";dxy", 50, -0.02,0.02, 1, dir);
   //hists->fill1DHist(mu.Dz(&_pv),  dir+"_mu_dxz", ";dz",  50, -0.1,  0.1, 1, dir);
   //hists->fill1DHist(mu.PtError()/mu.Pt(), dir+"_mu_ptErrorOverPt", ";ptErrorOverPt", 50, 0,0.1, 1, dir);
