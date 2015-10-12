@@ -1,3 +1,6 @@
+#ifndef _DUMMY_ANA
+#define _DUMMY_ANA
+
 #include <map>
 #include <string>
 
@@ -40,6 +43,8 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   virtual void CountEvents(Int_t , std::string , Double_t , std::ofstream& s);
   virtual void FillHistoCounts(Int_t n, Double_t w);
 
+  static bool P4SortCondition(const TLorentzVector& p1, const TLorentzVector& p2) {return (p1.Pt() > p2.Pt());}
+
  protected:
 
   UInt_t nEvents[nC];
@@ -66,3 +71,5 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   //TFile *histoFile;
   HistManager *hists;
 };
+
+#endif /* _DUMMY_ANA */

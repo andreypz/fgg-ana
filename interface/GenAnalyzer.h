@@ -1,3 +1,6 @@
+#ifndef _GEN_ANA
+#define _GEN_ANA
+
 #include "DummyAnalyzer.h"
 
 #include "FggHistMakerBase.h"
@@ -17,3 +20,6 @@ class GenAnalyzer : public DummyAnalyzer {
   FggHistMakerBase *FHM;
 
 };
+
+
+#endif /* GEN_ANA */

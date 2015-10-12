@@ -1,3 +1,6 @@
+#ifndef _ZGAMMA_ANA
+#define _ZGAMMA_ANA
+
 #include "DummyAnalyzer.h"
 
 #include "FggHistMakerZgamma.h"
@@ -18,3 +21,5 @@ class ZGammaAnalyzer : public DummyAnalyzer {
   FggHistMakerZgamma *FHM;
   Double_t a;
 };
+
+#endif /* _ZGAMMA_ANA */

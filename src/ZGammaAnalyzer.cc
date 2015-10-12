@@ -1,7 +1,5 @@
 #include "../interface/ZGammaAnalyzer.h"
 
-
-bool P4SortCondition(const TLorentzVector& p1, const TLorentzVector& p2) {return (p1.Pt() > p2.Pt());}
 typedef std::pair<std::string,float> IdPair;
 //typedef std::pair<std::string,Bool_t> IdPair;
 
