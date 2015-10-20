@@ -212,5 +212,5 @@ void ZGammaAnalyzer::analyze(const edm::EventBase& event)
 void ZGammaAnalyzer::endJob()
 {
   cout<<"\t ZZZZZZZZ \t END JOB in "<<__PRETTY_FUNCTION__<<endl;
-  DummyAnalyzer::endJob();
+  DummyAnalyzer::endJob(0);
 }

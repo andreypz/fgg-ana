@@ -3,7 +3,11 @@
 
 #include "DummyAnalyzer.h"
 
-#include "FggHistMakerBase.h"
+#include "FggHistMakerHHbbgg.h"
+
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+//#include "DataFormats/PatCandidates/interface/Jet.h"
 
 class GenAnalyzer : public DummyAnalyzer {
 
@@ -17,7 +21,7 @@ class GenAnalyzer : public DummyAnalyzer {
   void analyze(const edm::EventBase& event);
 
  private:
-  FggHistMakerBase *FHM;
+  FggHistMakerHHbbgg *FHM;
 
 };
 

@@ -37,7 +37,7 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
     delete hists;
   };
   void beginJob();
-  void endJob();
+  void endJob(UInt_t n);
   void analyze(const edm::EventBase& event);
 
   virtual void CountEvents(Int_t , std::string , Double_t , std::ofstream& s);

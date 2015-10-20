@@ -45,8 +45,9 @@ void DummyAnalyzer::analyze(const edm::EventBase& event)
 I provide basic function which are useful for all your other analyzers.");
 }
 
-void DummyAnalyzer::endJob()
+void DummyAnalyzer::endJob(UInt_t effBase = 0)
 {
+  // effBase argument is used to set the base cut for total efficiency calculation (see below)
 
   cout<<"\t DDDDDDD \t  Dummy is Terminating! Don't sit too close to the monitor... **"<<endl;
   fout.close();
@@ -67,14 +68,14 @@ void DummyAnalyzer::endJob()
 
 
   cout<<" ** YIELDS **"<<endl;
-  cout<<"n |"<<setw(45)<<" CUT DESCRIPTION \t\t|"<<" events \t"<< "Weight sum |"<<"eff |"<<endl;
+  cout<<"n |"<<setw(45)<<" CUT DESCRIPTION \t\t|"<<" events \t"<< "Weight sum |"<<" Tot eff |"<<" cut eff |"<<endl;
   for (Int_t n=0; n<nC; n++){
     if (n==0)
       cout<<  "0 |"<<setw(45)<<allCuts[0]<<"\t |"<<setw(8)<< nEvents[0]<<"|"<<setw(8)<<ULong64_t(nWeights[0])<<"|"
-	  <<setw(5)<<std::fixed<<std::setprecision(3)<<float(nWeights[0])/nWeights[0]<<"|"<<endl;
+	  <<setw(5)<<std::fixed<<std::setprecision(3)<<1.0<<"|"<<1.0<<"|"<<endl;
     else
       cout<<n<<" |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[n]<<"|"<<setw(8)<<ULong64_t(nWeights[n])<<"|"
-	  <<setw(5)<<std::fixed<<std::setprecision(3)<<float(nWeights[n])/nWeights[n-1]<<"|"<<endl;
+	  <<setw(5)<<std::fixed<<std::setprecision(3)<<float(nWeights[n])/nWeights[effBase]<<"|"<<float(nWeights[n])/nWeights[n-1]<<"|"<<endl;
   }
 
 

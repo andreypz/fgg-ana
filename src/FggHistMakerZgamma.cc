@@ -1,8 +1,5 @@
 #include "../interface/FggHistMakerZgamma.h"
 
-//bool SCESortCondition(const flashgg::EGamma& p1, const flashgg::EGamma& p2) {return (p1.SCEnergy() > p2.SCEnergy());}
-//bool P4SortCondition(const TLorentzVector& p1, const TLorentzVector& p2) {return (p1.Pt() > p2.Pt());}
-
 FggHistMakerZgamma::FggHistMakerZgamma(HistManager *h):
   FggHistMakerBase::FggHistMakerBase(h),
   _isVtxSet(false),

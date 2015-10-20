@@ -283,14 +283,18 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
   if f1!=None and not f1.IsZombie():
     f1.cd(myDir)
   elif bZip!=None:
-    print bZip[0]
-    bZip[0][1].cd(myDir)
+    print 'bzip[0]:', bZip[0]
+    isDir = bZip[0][1].cd(myDir)
   elif sZip!=None:
-    print sZip[0]
-    sZip[0][1].cd(myDir)
+    print 'szip[0]:', sZip[0]
+    isDir = sZip[0][1].cd(myDir)
   else:
     print "Sorry can't draw anything, no files are provided!"
-    sys.exit(0)
+    return #sys.exit(0)
+
+  if not isDir: 
+    print myDir,' ? No such directory.. --> return'
+    return
 
   dirList = gDirectory.GetListOfKeys()
   # dirList.Print()
@@ -540,8 +544,8 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
             elif 'LHE' in histoName:
               leg.AddEntry(h3, sZip[j][0], "l")
             else:
-              #leg.AddEntry(h3, sZip[j][0], "l")
-              leg.AddEntry(h3,' m_{H} = '+sZip[j][0][4:7]+' GeV', "l")
+              leg.AddEntry(h3, sZip[j][0], "l")
+              #leg.AddEntry(h3,' m_{H} = '+sZip[j][0][4:7]+' GeV', "l")
             leg.SetFillStyle(0)
 
         if doRatio:
