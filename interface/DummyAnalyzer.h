@@ -7,6 +7,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
+#include "flashgg/DataFormats/interface/Jet.h"
 #include "flashgg/DataFormats/interface/Photon.h"
 #include "flashgg/DataFormats/interface/Muon.h"
 #include "flashgg/DataFormats/interface/Electron.h"
@@ -60,12 +61,14 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   std::string lep_;
   double lumiWeight_;
 
-  edm::InputTag muons_, electrons_, photons_;
+  edm::InputTag muons_, electrons_, photons_, jets_;
   edm::InputTag myGen_;
 
   //edm::EDGetTokenT<std::vector<reco::Muon> > muonsToken_;
 
-  bool isRealData;
+  Bool_t isRealData;
+  ULong_t eventNumber;
+  UInt_t runNumber;
   std::map<std::string, TH1*> hists_;
   //TFile *outFile;
   //TFile *histoFile;

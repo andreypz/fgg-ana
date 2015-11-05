@@ -35,7 +35,7 @@ class FggHistMakerHHbbgg : public FggHistMakerBase {
   Float_t _rhoFactor;
   UInt_t _nVtx;
   
-  //  ZGAngles *angles;
+  ZGAngles *angles;
 
 };
 

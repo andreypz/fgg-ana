@@ -39,7 +39,7 @@ sel  = opt.sel
 
 comments = ["Bla",
             "Bla bla"]
-HHresMass = ['260','320','500']
+HHresMass = ['250','340','600']
 
 doLumiScale = 1
 if opt.evt: doLumiScale=0
@@ -102,11 +102,13 @@ if __name__ == "__main__":
   else: bkgZip = None
 
   sigGrav  = {}
+  sigRadi  = {}
   sigGG  = {}
   sigVBF = {}
   sigVH  = {}
   for m in HHresMass:
-    sigGrav[m]  = TFile(hPath+"/output_GluGluToBulkGravitonToHHTo2B2G_M-"+m+"_narrow_13TeV-madgraph_Spring15BetaV5_USER.root", "OPEN")
+    sigGrav[m]  = TFile(hPath+"/output_GluGluToBulkGravitonToHHTo2B2G_M-"+m+"_narrow_13TeV-madgraph.root", "OPEN")
+    sigRadi[m]  = TFile(hPath+"/output_GluGluToRadionToHHTo2B2G_M-"+m+"_narrow_13TeV-madgraph.root", "OPEN")
     #sigGG[m]  = TFile(hPath+"/hhhh_ggH-mad"+m+"_1.root", "OPEN")
     #sigVBF[m] = TFile(hPath+"/hhhh_vbfH-mad"+m+"_1.root", "OPEN")
     #sigVH[m]  = TFile(hPath+"/hhhh_vH-mad"+ m+"_1.root", "OPEN")
@@ -170,8 +172,10 @@ if __name__ == "__main__":
   if opt.hjp: sigName= 'H #rightarrow J/Psi #gamma'
 
 
-  sigZip = zip(['Grav 260','Grav 320','Grav 500'],
-               [sigGrav['260'], sigGrav['320'], sigGrav['500']])
+  sigZip = zip(['Grav 250','Radi 250','Grav 600', 'Radi 600'],
+               [sigGrav['250'], sigRadi['250'], sigGrav['600'], sigRadi['600']])
+  #sigZip = zip(['Grav 250','Grav 340','Grav 600'],
+  #             [sigGrav['250'], sigGrav['340'], sigGrav['600']])
   
 
   if opt.bkg:
@@ -193,6 +197,8 @@ if __name__ == "__main__":
     for n in ['Angles','N']:
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, cut, "norm")
+      else:
+        u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
 
     # For the cases without cut number:
     for n in ['Photon','Ele']:

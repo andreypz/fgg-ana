@@ -7,10 +7,11 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   edm::BasicAnalyzer::BasicAnalyzer(cfg, fs),
   lep_(cfg.getUntrackedParameter<string>("lep")),
   lumiWeight_( cfg.getParameter<double>( "lumiWeight" ) ),
-  muons_(cfg.getParameter<edm::InputTag>("myMuons")),
-  electrons_(cfg.getParameter<edm::InputTag>("myElectrons")),
-  photons_(cfg.getParameter<edm::InputTag>("myPhotons")),
-  myGen_( cfg.getParameter<edm::InputTag>( "myGens" ) )
+  muons_(cfg.getParameter<edm::InputTag>("muonTag")),
+  electrons_(cfg.getParameter<edm::InputTag>("electronTag")),
+  photons_(cfg.getParameter<edm::InputTag>("photonTag")),
+  jets_(cfg.getParameter<edm::InputTag>("jetTag")),
+  myGen_( cfg.getParameter<edm::InputTag>( "genTag" ) )
 {
   cout<<"\t DDDDD \t Dummy is constructing you..."<<endl;
   // This is an exmple of how to use TFileService histograms:
@@ -49,7 +50,7 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
 {
   // effBase argument is used to set the base cut for total efficiency calculation (see below)
 
-  cout<<"\t DDDDDDD \t  Dummy is Terminating! Don't sit too close to the monitor... **"<<endl;
+  cout<<"\t DDDDDDD \t  Dummy is Terminating... Don't sit too close to the monitor - it may explode into your face! **"<<endl;
   fout.close();
   fcuts.close();
 

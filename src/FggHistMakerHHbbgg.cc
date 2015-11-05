@@ -12,7 +12,7 @@ FggHistMakerHHbbgg::FggHistMakerHHbbgg(HistManager *h):
   _nVtx(0)
 {
   cout<<"\t HHHHHHH \t HHbbggHistmaker constractor"<<endl;
-  //angles = new ZGAngles();
+  angles = new ZGAngles();
 }
 
 FggHistMakerHHbbgg::~FggHistMakerHHbbgg(){}
@@ -50,6 +50,15 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
 
     hists->fill1DHist(Hgg.Pt(), Form("01_pT_gg_%s_cut%i", d, num),";p_{T}^{#gamma#gamma}", 100,0,600,  weight, dir);
 
+    hists->fill1DHist(_gamma1.Pt(), Form("03_gamma1_pt_%s_cut%i", d, num),";Leading p_{T}^{#gamma}", 100,0,300,  weight, dir);
+    hists->fill1DHist(_gamma2.Pt(), Form("03_gamma2_pt_%s_cut%i", d, num),";Trailing p_{T}^{#gamma}",100,0,300,  weight, dir);
+
+    hists->fill1DHist(_gamma1.Eta(), Form("03_gamma1_eta_%s_cut%i", d, num),";Leading #eta^{#gamma}", 50,-5,5,  weight, dir);
+    hists->fill1DHist(_gamma2.Eta(), Form("03_gamma2_eta_%s_cut%i", d, num),";Trailing #eta^{#gamma}",50,-5,5,  weight, dir);
+
+    hists->fill1DHist(_gamma1.Phi(), Form("03_gamma1_phi_%s_cut%i", d, num),";Leading #phi^{#gamma}", 50, -3.15,3.15,  weight, dir);
+    hists->fill1DHist(_gamma2.Phi(), Form("03_gamma2_phi_%s_cut%i", d, num),";Trailing #phi^{#gamma}",50, -3.15,3.15,  weight, dir);
+
   }
 
   if (_isBJet1Set && _isBJet2Set){
@@ -57,7 +66,7 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
     TLorentzVector Hbb = _bjet1 + _bjet2;
     Float_t Mbjbj  = Hbb.M();
 
-    hists->fill1DHist(Mbjbj, Form("02_Mbjbj6_%s_cut%i", d, num),";m(jj), GeV", 50, 50,350, weight, dir);
+    hists->fill1DHist(Mbjbj, Form("02_Mbjbj_%s_cut%i", d, num),";m(jj), GeV", 50, 50,350, weight, dir);
     hists->fill1DHist(Hbb.Pt(), Form("02_pT_bjbj_%s_cut%i", d, num),";p_{T}^{jj}", 100,0,600,  weight, dir);
 
     hists->fill1DHist(fabs(_bjet1.Eta() -_bjet2.Eta()), Form("03_deltaEta_j1_j2_%s_cut%i", d, num),
@@ -68,6 +77,17 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
     hists->fill2DHist(_bjet1.Eta()-_bjet2.Eta(), _bjet1.DeltaPhi(_bjet2), Form("03_dEta_dPhi_%s_cut%i", d, num),
 		      ";#DeltaEta(j1,j2);#DeltaPhi(j1,j2)", 50, -4,4, 50, -3.15, 3.15, weight, dir);
 
+
+    hists->fill1DHist(_bjet1.Pt(), Form("04_bjet1_pt_%s_cut%i", d, num),";Leading p_{T}^{bjet}", 100,0,300,  weight, dir);
+    hists->fill1DHist(_bjet2.Pt(), Form("04_bjet2_pt_%s_cut%i", d, num),";Trailing p_{T}^{bjet}",100,0,300,  weight, dir);
+
+    hists->fill1DHist(_bjet1.Eta(), Form("04_bjet1_eta_%s_cut%i", d, num),";Leading #eta^{bjet}", 50,-5,5,  weight, dir);
+    hists->fill1DHist(_bjet2.Eta(), Form("04_bjet2_eta_%s_cut%i", d, num),";Trailing #eta^{bjet}",50,-5,5,  weight, dir);
+
+    hists->fill1DHist(_bjet1.Phi(), Form("04_bjet1_phi_%s_cut%i", d, num),";Leading #phi^{bjet}", 30, -3.15,3.15,  weight, dir);
+    hists->fill1DHist(_bjet2.Phi(), Form("04_bjet2_phi_%s_cut%i", d, num),";Trailing #phi^{bjet}",30, -3.15,3.15,  weight, dir);
+
+
   }
 
   if (_isGamma1Set && _isGamma2Set && _isBJet1Set && _isBJet2Set){
@@ -76,6 +96,16 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
     
     hists->fill1DHist(Mbbgg, Form("00_Mbbgg_r1_%s_cut%i", d, num),";m(#gamma#gamma jj), GeV", 100, 100,900, weight, dir);
     hists->fill1DHist(Mbbgg, Form("00_Mbbgg_r2_%s_cut%i", d, num),";m(#gamma#gamma jj), GeV", 100, 0,1500, weight, dir);
+
+    //ZGanlgles:
+    double co1,co2,phi,co3;
+    angles->GetAngles(_gamma1, _gamma2, _bjet1+_bjet2, co1,co2,phi,co3);
+
+    hists->fill1DHist(co1, Form("co1_cut%i", num), ";cos(#vec{l-},#vec{Z}) in CM", 100,-1,1, weight,"Angles");
+    hists->fill1DHist(co2, Form("co2_cut%i", num), ";cos(#vec{l+},#vec{Z}) in CM", 100,-1,1, weight,"Angles");
+    hists->fill1DHist(co3, Form("co3_cut%i", num), ";cos(#Theta)",                 100,-1,1, weight,"Angles");
+    hists->fill1DHist(phi, Form("phi_cut%i", num), ";#phi(l+)",50, -TMath::Pi(), TMath::Pi(),weight,"Angles");
+
   }
 
 

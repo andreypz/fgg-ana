@@ -29,10 +29,10 @@ process.fwliteOutput = cms.PSet(
 process.ZGammaAnalyzer = cms.PSet(
     ## input specific for this analyzer
     lep  = cms.untracked.string('el'), # "mu" or "el"
-    myMuons = cms.InputTag('flashggSelectedMuons'),
-    myElectrons = cms.InputTag('flashggSelectedElectrons'),
-    myPhotons = cms.InputTag('flashggPhotons'),
-    myGens = cms.InputTag('flashggPrunedGenParticles'),
+    muonTag     = cms.InputTag('flashggSelectedMuons'),
+    electronTag = cms.InputTag('flashggSelectedElectrons'),
+    photontag   = cms.InputTag('flashggPhotons'),
+    genTag      = cms.InputTag('flashggPrunedGenParticles'),
     lumiWeight = cms.double(1.),
 )
 

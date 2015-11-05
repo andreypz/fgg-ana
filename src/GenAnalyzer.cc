@@ -23,6 +23,8 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 {
   Double_t ww = 1;
   isRealData = event.isRealData();
+  eventNumber  = event.id().event();
+  runNumber    = event.id().run();
 
   if (isRealData) throw cms::Exception("Dude! This is Data. You can't run gen-level analysis on Data...");
 
@@ -61,6 +63,10 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   //Bool_t yes = 0;
   TLorentzVector tmp;
 
+  // --
+  // GEN Particles.
+  // Select b-qurks and photons from the Higgses:
+  
   for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
 
     //if (igen->pdgId()==22 && igen->status()==1 && igen->mother()->pdgId()==25){
@@ -140,13 +146,34 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
 
-
   gen_gamma1 = gen_photons[0];
   gen_gamma2 = gen_photons[1];
 
+  gen_bjet1 = gen_bQ1;
+  gen_bjet2 = gen_bQ2;
+  
+  FHM->SetGamma1(gen_gamma1);
+  FHM->SetGamma2(gen_gamma2);
+
+  // For now set hte b-jets to be the b-quarks:
+  FHM->SetBJet1(gen_bjet1);
+  FHM->SetBJet2(gen_bjet2);
+
+
+  FHM->MakeMainHistos(1, ww);
+
+  hists->fill1DHist(gen_bQ1.Pt(), Form("04_gen_bQ1_pt_%s_cut%i", "", 1),";p_{T}^{b}", 100,0,300,  ww, "GEN");
+  hists->fill1DHist(gen_bQ2.Pt(), Form("04_gen_bQ2_pt_%s_cut%i", "", 1),";p_{T}^{#bar{b}}",100,0,300,  ww, "GEN");
+  
+  hists->fill1DHist(gen_bQ1.Eta(), Form("04_gen_bQ1_eta_%s_cut%i", "", 1),";#eta^{b}", 50,-5,5,  ww, "GEN");
+  hists->fill1DHist(gen_bQ2.Eta(), Form("04_gen_bQ2_eta_%s_cut%i", "", 1),";#eta^{#bar{b}}",50,-5,5,  ww, "GEN");
+
+
+  // --
+  // GEN JETS: match them to b-quarks
+  // --
   edm::Handle<reco::GenJetCollection> genJets;
   event.getByLabel(edm::InputTag("slimmedGenJets"), genJets);
-
 
   UInt_t jetInd = 0;
   Float_t dRb1 = 9999, dRb2 = 9999;
@@ -160,12 +187,17 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
 
     //UInt_t ndau = jet->numberOfDaughters();
-
     //std::cout<<"Daughters: "<<jet->numberOfDaughters()<<std::endl;
-    //for (UInt_t n = 0; n<ndau; n++){ 
-      //const reco::Candidate *jetDau = jet->daughter(n);      
-      //std::cout<<n<<"  PDG="<<jet->daughter(n)->pdgId()<<"  status="<<jet->daughter(n)->status()<<std::endl;
-      //std::cout<<n<<"  PDG="<<jetDau->pdgId()<<"  status="<<jetDau->status()<<std::endl;
+
+    //if (fabs(jet->eta())<2){ 
+      //std::cout<<"\t XXX Event number = "<<eventNumber<<std::endl;
+      //for (UInt_t n = 0; n<ndau; n++){ 
+	//CandidatePtr daughterPtr( size_type i ) const 
+	
+	//const reco::Candidate *jetDau = jet->daughter(n);      
+	//std::cout<<n<<"  PDG="<<jet->daughter(n)->pdgId()<<"  status="<<jet->daughter(n)->status()<<std::endl;
+	//std::cout<<n<<"  PDG="<<jetDau->pdgId()<<"  status="<<jetDau->status()<<std::endl;
+    //}
     //}
 
     // Does not work from Gen-jets:
@@ -198,13 +230,13 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   }
 
-  hists->fill1DHist(dRb1, "dR_jetb1",";#DeltaR(jet, b-quark)", 50, 0,2, ww, "GEN");
-  hists->fill1DHist(dRb2, "dR_jetb2",";#DeltaR(jet, #bar{b}-quark)", 50, 0,2, ww, "GEN");
+  hists->fill1DHist(dRb1, "dR_jetb1",";#DeltaR(jet, b-quark)", 50, 0,1.2, ww, "GEN");
+  hists->fill1DHist(dRb2, "dR_jetb2",";#DeltaR(jet, #bar{b}-quark)", 50, 0,1.2, ww, "GEN");
 
   Float_t Mbb = (gen_bQ1+gen_bQ2).M();
   Float_t dRbb = gen_bQ1.DeltaR(gen_bQ2);
 
-  hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 50, 1000, 150, ww, "GEN");
+  hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 100, 124.5, 125.5, ww, "GEN");
   hists->fill1DHist(dRbb, "dR_bb",";#DeltaR(b, #bar{b})", 50, 0,5, ww, "GEN");
 
 
@@ -221,10 +253,8 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   //gen_bjet1 = gen_jets[0];
   //gen_bjet2 = gen_jets[1];
 
-
-  FHM->SetGamma1(gen_gamma1);
-  FHM->SetGamma2(gen_gamma2);
-
+  // Here swithch to the actual jets.
+  // The jets aer those that match to the given quark 1=b, 2=bbar 
   FHM->SetBJet1(gen_bjet1);
   FHM->SetBJet2(gen_bjet2);
 

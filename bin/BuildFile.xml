@@ -11,6 +11,7 @@
 
 <use   name="APZ/fgg-ana"/>
 <environment>
+  <bin   file="hhRun.cc"></bin>
   <bin   file="genRun.cc"></bin>
   <bin   file="zgammaRun.cc"></bin>
 </environment>

@@ -28,6 +28,8 @@ makePdfList    = [a.strip() for a in (conf.get("selection","makePdfList")).split
 rebinList      = [a.strip() for a in (conf.get("selection","rebinList")).split(',')]
 print 'No-Overflow list = ', noOverflowList
 
+myGoodListOfColors = [38, 46, 8, 40, 13, 41]
+
 class AutoVivification(dict):
   """Implementation of perl's autovivification feature."""
   def __getitem__(self, item):
@@ -439,7 +441,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
       #  print "\n *** H-mass RMS:",  h1.GetRMS(), h3.GetRMS()
       #  print "\n *** H-mass Mean:", h1.GetMean(),h3.GetMean()
 
-      leg = TLegend(0.63,0.72,0.92,0.90)
+      leg = TLegend(0.70,0.72,0.92,0.90)
       if 'LHE' in histoName:
         leg = TLegend(0.67,0.77,0.92,0.90)
       leg.SetTextSize(0.03)
@@ -450,7 +452,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
         leg.SetTextSize(0.05)
 
       if h1==None and bZip==None:
-        leg = TLegend(0.58,0.66,0.92,0.87)
+        leg = TLegend(0.70,0.66,0.92,0.87)
         leg.SetBorderSize(0)
         leg.SetTextSize(0.04)
 
@@ -529,7 +531,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
             h3.SetLineColor(col[0])
             h3.SetFillColor(col[1])
           else:
-            h3.SetLineColor(40+j)
+            h3.SetLineColor(myGoodListOfColors[j])
             #h3.SetLineStyle(2+j)
 
 
@@ -763,6 +765,8 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
       c1.cd()
       leg.SetFillColor(kWhite)
       leg.Draw()
+      # print 'DBG Which legend is used? ='
+      # leg.Print()
 
       c1.SetLogy(int(isLog))
       #print 'Saving PNG:', histoName
