@@ -19,8 +19,8 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   // This is the HistoManager class (notice, no underscore): 
   hists    = new HistManager(fs.getBareDirectory()->GetFile());
 
-  open_temp("/tmp", "out_cutlist", fcuts);  
-  //open_temp("/tmp", '', fout);  
+  yields_txt_path = open_temp("/tmp", "out_cutlist", fcuts);  
+  open_temp("/tmp", "synch", fout);  
   //fcuts.open("./out_cutlist.txt", ofstream::out);
   //fout.open("./out_synch_.txt",ofstream::out);
   fout.precision(3); fout.setf(ios::fixed, ios::floatfield);
@@ -58,7 +58,8 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
 
   string allCuts[nC];
   string line;
-  ifstream myfile("./out_cutlist.txt");
+  ifstream myfile(yields_txt_path);
+  cout<<yields_txt_path<<endl;
   if (myfile.is_open()){
     while (! myfile.eof() ){
       getline (myfile,line);
@@ -101,6 +102,7 @@ void DummyAnalyzer::CountEvents(Int_t num, string cutName, Double_t wei, ofstrea
     s<<num<<" "<<cutName<<endl;
   nEvents[num]++;
   nWeights[num]+=wei;
+  //else edm::LogError("File is not open!");
 }
 
 
@@ -117,13 +119,17 @@ std::string DummyAnalyzer::open_temp(std::string path, std::string nm, std::ofst
   path += "/"+nm+"_XXXXXX";
   std::vector<char> dst_path(path.begin(), path.end());
   dst_path.push_back('\0');
-  
+
+  // See also: http://man7.org/linux/man-pages/man3/mkstemp.3.html
   int fd = mkstemp(&dst_path[0]);
   if(fd != -1) {
     path.assign(dst_path.begin(), dst_path.end() - 1);
     f.open(path.c_str(),
 	   std::ios_base::trunc | std::ios_base::out);
     close(fd);
+
+    cout<<"\t\t DDDD Open temp OK.  Path="<<path<<endl;
   }
+
   return path;
 }

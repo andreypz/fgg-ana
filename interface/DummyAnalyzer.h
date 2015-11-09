@@ -52,13 +52,14 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   UInt_t nEvents[nC];
   UInt_t totEvents;
   UInt_t count_neg, count_pos;
-
+  
 
   Double_t nWeights[nC];
   Double_t totWeights;
   Double_t W0;
 
   std::ofstream fout, fcuts;
+  std::string yields_txt_path;
   std::string lep_;
   double lumiWeight_;
 

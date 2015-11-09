@@ -238,11 +238,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   Float_t dRbb = gen_bQ1.DeltaR(gen_bQ2);
 
   if (gen_jets.size()<2) return;
-  if (dRb1>dRcut || dRb2>dRcut) return;
-  if (gen_bjet1.Pt() == gen_bjet2.Pt() && gen_bjet1.DeltaR(gen_bjet2)<0.01) return;
-    //std::cout<<totEvents<<"\t\t These the jets are the same!\t dRb1="<<dRb1<<" dRb2="<<dRb2<<"  dRbb="<<dRbb<<std::endl;
-
-  CountEvents(2, "Two gen Jets in event matched to b-quarks",ww,fcuts);
+  CountEvents(2, "At least two gen Jets in event w/ pT > 25",ww,fcuts);
   FillHistoCounts(2, ww);
 
   sort(gen_jets.begin(), gen_jets.end(), P4SortCondition);
@@ -268,13 +264,6 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   //gen_bjet1 = gen_jets[0];
   //gen_bjet2 = gen_jets[1];
 
-  // Here swithch to the actual jets.
-  // The jets aer those that match to the given quark 1=b, 2=bbar
-  FHM->SetBJet1(gen_bjet1);
-  FHM->SetBJet2(gen_bjet2);
-
-  FHM->MakeMainHistos(2, ww);
-
 
   if (gen_gamma1.Pt() < 30 || gen_gamma2.Pt() < 30) return;
   if (fabs(gen_gamma1.Eta()) > 2.5 || fabs(gen_gamma2.Eta()) > 2.5) return;
@@ -296,20 +285,36 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   FillHistoCounts(5, ww);
   FHM->MakeMainHistos(5, ww);
 
-  if (gen_bjet1.Pt() < 25 || gen_bjet2.Pt() < 25) return;
-  if (fabs(gen_bjet1.Eta()) > 2.5 || fabs(gen_bjet2.Eta()) > 2.5) return;
 
-  CountEvents(6, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+  if (dRb1>dRcut || dRb2>dRcut) return;
+  if (gen_bjet1.Pt() == gen_bjet2.Pt() && gen_bjet1.DeltaR(gen_bjet2)<0.01) return;
+    //std::cout<<totEvents<<"\t\t These the jets are the same!\t dRb1="<<dRb1<<" dRb2="<<dRb2<<"  dRbb="<<dRbb<<std::endl;
+
+  // Here switch to the actual jets (that are matchd to b-qurks)
+  // The jets aer those that match to the given quark 1=b, 2=bbar
+  FHM->SetBJet1(gen_bjet1);
+  FHM->SetBJet2(gen_bjet2);
+
+  FHM->MakeMainHistos(2, ww);
+
+  CountEvents(6, "Two Jets w/ pT>25 and |eta|<5; mathced to b-quarks",ww,fcuts);
   FillHistoCounts(6, ww);
   FHM->MakeMainHistos(6, ww);
+  
+  if (gen_bjet1.Pt() < 30 || gen_bjet2.Pt() < 30) return;
+  if (fabs(gen_bjet1.Eta()) > 2.5 || fabs(gen_bjet2.Eta()) > 2.5) return;
+
+  CountEvents(7, "Two Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+  FillHistoCounts(7, ww);
+  FHM->MakeMainHistos(7, ww);
 
   Float_t Mbjbj = (gen_bjet1 + gen_bjet2).M();
 
   if ( Mbjbj < 60 || Mbjbj > 180) return;
 
-  CountEvents(7, "60 < m(jj) < 180 GeV",ww,fcuts);
-  FillHistoCounts(7, ww);
-  FHM->MakeMainHistos(7, ww);
+  CountEvents(8, "60 < m(jj) < 180 GeV",ww,fcuts);
+  FillHistoCounts(8, ww);
+  FHM->MakeMainHistos(8, ww);
 
 }
 
