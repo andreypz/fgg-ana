@@ -59,7 +59,6 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
   string allCuts[nC];
   string line;
   ifstream myfile(yields_txt_path);
-  cout<<yields_txt_path<<endl;
   if (myfile.is_open()){
     while (! myfile.eof() ){
       getline (myfile,line);
@@ -128,7 +127,7 @@ std::string DummyAnalyzer::open_temp(std::string path, std::string nm, std::ofst
 	   std::ios_base::trunc | std::ios_base::out);
     close(fd);
 
-    cout<<"\t\t DDDD Open temp OK.  Path="<<path<<endl;
+    cout<<"\t DDDD Open temp OK.  Path="<<path<<endl;
   }
 
   return path;

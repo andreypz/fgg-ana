@@ -178,7 +178,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   UInt_t jetInd = 0;
   Float_t dRcut = 0.7;
-  Float_t dRb1 = dRcut, dRb2 = dRcut;
+  Float_t dRb1 = 0.8, dRb2 = 0.8;
 
   for( reco::GenJetCollection::const_iterator jet = genJets->begin(); jet != genJets->end(); ++jet ) {
 
@@ -206,11 +206,11 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
     //std::cout<<"Jet Hadron Flavour "<<jet->hadronFlavour()
     //<<"Parton Flavour "<<jet->partonFlavour()<<std::endl;
     const Float_t dptcut = 0.3;
-    if (tmp.DeltaR(gen_bQ1) < dRb1 && (gen_bQ1.Pt()-tmp.Pt())/gen_bQ1.Pt() < dptcut ) {
+    if (tmp.DeltaR(gen_bQ1) < dRb1 && fabs(gen_bQ1.Pt()-tmp.Pt())/gen_bQ1.Pt() < dptcut ) {
       gen_bjet1 = tmp;
       dRb1 = tmp.DeltaR(gen_bQ1);
     }
-    if (tmp.DeltaR(gen_bQ2) < dRb2 && (gen_bQ2.Pt()-tmp.Pt())/gen_bQ2.Pt() < dptcut ) {
+    if (tmp.DeltaR(gen_bQ2) < dRb2 && fabs(gen_bQ2.Pt()-tmp.Pt())/gen_bQ2.Pt() < dptcut ) {
       gen_bjet2 = tmp;
       dRb2 = tmp.DeltaR(gen_bQ2);
     }
@@ -243,17 +243,10 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   sort(gen_jets.begin(), gen_jets.end(), P4SortCondition);
 
-
-  hists->fill1DHist(dRb1, "dR_jetb1",";#DeltaR(jet, b-quark)", 50, 0,dRcut, ww, "GEN");
-  hists->fill1DHist(dRb2, "dR_jetb2",";#DeltaR(jet, #bar{b}-quark)", 50, 0,dRcut, ww, "GEN");
-
-  hists->fill1DHist((gen_bQ1.Pt()-tmp.Pt())/gen_bQ1.Pt(), "dPtOverPt",
-		    ";(p_{T}^{quark} - p_{T}^{jet})/p_{T}^{quark})", 50, 0,1, ww, "GEN");
-
   hists->fill1DHist(gen_bQ1.Eta(), "Eta_b",";#eta of b-quark", 100, -5, 5, ww, "GEN");
   hists->fill1DHist(gen_bQ2.Eta(), "Eta_bbar",";#eta of #bar{b}-quark", 100, -5, 5, ww, "GEN");
 
-  hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 100, 124.5, 125.5, ww, "GEN");
+  hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 100, 124.8, 125.2, ww, "GEN");
   hists->fill1DHist(dRbb, "dR_bb",";#DeltaR(b, #bar{b})", 50, 0,5, ww, "GEN");
 
 
@@ -290,6 +283,17 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   if (gen_bjet1.Pt() == gen_bjet2.Pt() && gen_bjet1.DeltaR(gen_bjet2)<0.01) return;
     //std::cout<<totEvents<<"\t\t These the jets are the same!\t dRb1="<<dRb1<<" dRb2="<<dRb2<<"  dRbb="<<dRbb<<std::endl;
 
+
+  hists->fill1DHist(dRb1, "dR_jetb1",";#DeltaR(jet, b-quark)", 50, 0,dRcut, ww, "GEN");
+  hists->fill1DHist(dRb2, "dR_jetb2",";#DeltaR(jet, #bar{b}-quark)", 50, 0,dRcut, ww, "GEN");
+
+  hists->fill1DHist((gen_bQ1.Pt()-gen_bjet1.Pt())/gen_bQ1.Pt(), "dPtOverPt_b1",
+		    ";(p_{T}^{b-quark} - p_{T}^{jet})/p_{T}^{b-quark})", 100, -0.6,0.6, ww, "GEN");
+
+  hists->fill1DHist((gen_bQ2.Pt()-gen_bjet2.Pt())/gen_bQ2.Pt(), "dPtOverPt_b2",
+		    ";(p_{T}^{#bar{b}-quark} - p_{T}^{jet})/p_{T}^{#bar{b}-quark})", 100, -0.6,0.6, ww, "GEN");
+
+
   // Here switch to the actual jets (that are matchd to b-qurks)
   // The jets aer those that match to the given quark 1=b, 2=bbar
   FHM->SetBJet1(gen_bjet1);
@@ -301,7 +305,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   FillHistoCounts(6, ww);
   FHM->MakeMainHistos(6, ww);
   
-  if (gen_bjet1.Pt() < 30 || gen_bjet2.Pt() < 30) return;
+  if (gen_bjet1.Pt() < 25 || gen_bjet2.Pt() < 25) return;
   if (fabs(gen_bjet1.Eta()) > 2.5 || fabs(gen_bjet2.Eta()) > 2.5) return;
 
   CountEvents(7, "Two Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);

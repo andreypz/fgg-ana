@@ -9,10 +9,11 @@ import makeHTML as ht
 
 gROOT.SetBatch()
 
-parser = OptionParser(usage="usage: %prog ver [options -c, -e, -p, -m]")
-parser.add_option("-c","--cut",   dest="cut", type="int", default=3, help="Plots after a certain cut")
+parser = OptionParser(usage="usage: %prog plots-version-path [options -c, -e, -p, -m]")
+parser.add_option("-c","--cut",   dest="cut", type="int", default=5, help="Plots after a certain cut")
 parser.add_option("--mass", dest="mass", type="int", default=125,    help="Signal sample (mass)")
 parser.add_option("-m","--merge", dest="merge",action="store_true", default=False, help="Do merging?")
+parser.add_option("-v","--verbose",dest="verbose",action="store_true", default=False, help="Verbose level")
 
 parser.add_option("-p", "--period",dest="period", default="2012",  help="Year period; 2011 or 2012")
 parser.add_option("--bkg",  dest="bkg",  action="store_true", default=False, help="Make plots from bkg sample")
@@ -59,6 +60,7 @@ if __name__ == "__main__":
   period  = opt.period
   doBkg   = opt.bkg
 
+  u.setVerboseLevel(opt.verbose)
   #gROOT.ProcessLine(".L ../tdrstyle.C")
   #setTDRStyle()
   TH1.SetDefaultSumw2(kTRUE)
@@ -149,7 +151,7 @@ if __name__ == "__main__":
       yields_vh   = u.getYields(sigFileVH,  'vH-125',   doLumiScale)
       yields_sig  = [sum(x) for x in zip(yields_ggH,yields_vbf,yields_vh)]
 
-      print 'ggH yi', yields_ggH
+      if opt.verbose: print 'ggH yi', yields_ggH
 
     if sel=='hhbbgg':
       yields_grav = {}
@@ -198,7 +200,7 @@ if __name__ == "__main__":
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, cut, "norm")
       else:
-        u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
+        u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, cut, "norm")
 
     # For the cases without cut number:
     for n in ['Photon','Ele']:
@@ -215,11 +217,6 @@ if __name__ == "__main__":
     print 'Doing special plotting'
     print 'End of special plotting'
 
-  import glob
-  newest_outCutlist = max(glob.iglob(os.path.join('/tmp/', 'out_cutlist_*')), key=os.path.getctime)
-  print newest_outCutlist
-  u.setCutListFile(newest_outCutlist)
-  
   plot_types =[]
   dirlist = os.listdir(pathBase)
   for d in dirlist:
@@ -258,7 +255,7 @@ if __name__ == "__main__":
 
   os.system("cat yields_all.html > yields.html")
 
-  defaultPage = 'GEN'
+  defaultPage = 'Main-Sig'
 
   ht.makeHTML("Z &rarr; HH &rarr; bb &gamma;&gamma; decay plots",pathBase, plot_types, comments, defaultPage)
 

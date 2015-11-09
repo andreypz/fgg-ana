@@ -9,8 +9,9 @@ gROOT.LoadMacro("~/CMS_lumi.C")
 setTDRStyle()
 gROOT.ForceStyle()
 TH1.SetDefaultSumw2(kTRUE)
-from math import sqrt
+verbose=0
 
+from math import sqrt
 import ConfigParser as cp
 conf = cp.ConfigParser()
 conf.optionxform = str
@@ -38,6 +39,10 @@ class AutoVivification(dict):
     except KeyError:
       value = self[item] = type(self)()
       return value
+
+
+def setVerboseLevel(v=False):
+  verbose=v
 
 def mllBins():
   """First number is the mLL cut threshold, second number is the fraction of the cross section"""
@@ -351,7 +356,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
     if sZip!=None:
       si = []
       for s in sZip:
-        print myDir, histoName
+        if verbose: print myDir, histoName
         if myDir!="":
           try:
             si.append(s[1].Get(myDir+"/"+histoName).Clone())
@@ -380,7 +385,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
           print s, Nev, lumi, cro, scale3
           si[-1].Scale(float(scale3))
 
-    print "\t Drawing", histoName
+    if verbose: print "\t Drawing", histoName
 
     if mainHist.InheritsFrom("TH2"):
       createDir(split[0]+"/TH2_"+split[1])
@@ -516,8 +521,10 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
 
 
           hmaxs.append(s.GetMaximum())
-          print s, 's Hist maximum= ', s.GetMaximum()
-        print howToScale, "norm1=%.3f, norm3=%.3f, roundTo=%.3f, scale=%.3f"%(norm1, norm3, roundTo, scale)
+          if verbose: print s, 's Hist maximum= ', s.GetMaximum()
+
+        if verbose:
+          print howToScale, "norm1=%.3f, norm3=%.3f, roundTo=%.3f, scale=%.3f"%(norm1, norm3, roundTo, scale)
         # if 'tri_mass125' in histoName:
         #  si[0].Print('all')
 
@@ -760,7 +767,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
       if 'LHE' in histoName:
         CMS_lumi(c1, 2, 11,"Simulation")
       else:
-        print ' Do proper CMS lumi here'
+        if verbose: print '\t TODO: Do proper CMS lumi here'
         # CMS_lumi(c1, 2, 11)
 
       # print "hmax =", hmaxs
