@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 from optparse import OptionParser
-import sys,os,datetime,re
+import sys,os,datetime,re,glob
 from array import *
 from ROOT import *
 gROOT.SetBatch()
@@ -58,8 +58,11 @@ def getSelection():
 def setCutListFile(fname):
   conf.set("selection","cutlist", fname)
 
+
 def getCuts():
-  fcuts = conf.get("selection","cutlist")
+  # fcuts = conf.get("selection","cutlist")
+  fcuts = max(glob.iglob(os.path.join('/tmp', 'out_cutlist_*')), key=os.path.getctime)
+  print '\t Cut list file to be used:', fcuts
   with open(fcuts) as f:
     lines = f.read().splitlines()
 
@@ -294,7 +297,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
     print "Sorry can't draw anything, no files are provided!"
     return #sys.exit(0)
 
-  if not isDir: 
+  if not isDir:
     print myDir,' ? No such directory.. --> return'
     return
 

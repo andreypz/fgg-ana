@@ -215,8 +215,10 @@ if __name__ == "__main__":
     print 'Doing special plotting'
     print 'End of special plotting'
 
-
-  u.setCutListFile("./out_cutlist.txt")
+  import glob
+  newest_outCutlist = max(glob.iglob(os.path.join('/tmp/', 'out_cutlist_*')), key=os.path.getctime)
+  print newest_outCutlist
+  u.setCutListFile(newest_outCutlist)
   
   plot_types =[]
   dirlist = os.listdir(pathBase)
