@@ -41,6 +41,7 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   void endJob(UInt_t n);
   void analyze(const edm::EventBase& event);
 
+  virtual std::string open_temp(std::string p, std::string n, std::ofstream& s);
   virtual void CountEvents(Int_t , std::string , Double_t , std::ofstream& s);
   virtual void FillHistoCounts(Int_t n, Double_t w);
 

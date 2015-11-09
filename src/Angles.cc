@@ -28,10 +28,10 @@ void ZGAngles::SetAngles(const TLorentzVector& lplus, const TLorentzVector& lmin
 
   // ANGLE:
   _cosTheta = z_CM.Vect().Unit().Dot(h.Vect().Unit());
-  // Filled!
 
   TLorentzVector beamAxis_CM(beamAxis);
   beamAxis_CM.Boost(b1);
+  
 
   //------------------------//
   //- Rotating the CM frame://
@@ -90,7 +90,8 @@ void ZGAngles::SetAngles(const TLorentzVector& lplus, const TLorentzVector& lmin
 
   //cout<<"lplus in Z frame: px = "<<lplus_inZFrame.Px()<<"  py = "<<lplus_inZFrame.Py()<<endl;
   //cout<<"lminus in Z frame: px = "<<lminus_inZFrame.Px()<<"  py = "<<lminus_inZFrame.Py()<<endl;
-
+  
+  
 
   //ATT:
   //There are some problems with other definitions (c2, and c3). They are not always the same

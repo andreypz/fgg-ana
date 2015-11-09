@@ -66,7 +66,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   // --
   // GEN Particles.
   // Select b-qurks and photons from the Higgses:
-  
+
   for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
 
     //if (igen->pdgId()==22 && igen->status()==1 && igen->mother()->pdgId()==25){
@@ -74,15 +74,16 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
     //if (igen->pdgId()==22 && igen->status()==1 && igen->fromHardProcess()){
     if (abs(igen->pdgId())==5 && igen->mother()->pdgId()==25) {
 
-      //std::cout<<totEvents<<"\t\t BBB Found b-quark from Higgs! BBB  Its status = "<<igen->status()<<std::endl;
+      //std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t BBB Found b-quark from Higgs! BBB  Its status = "<<igen->status()
+      //<<" Its charge = "<<igen->charge()<<std::endl;
 
       tmp.SetPxPyPzE(igen->px(), igen->py(), igen->pz(), igen->energy());
       if (igen->pdgId()==5)
 	gen_bQ1 = tmp;
-      else if (igen->pdgId()==-5)
+      if (igen->pdgId()==-5)
 	gen_bQ2 = tmp;
     }
-    
+
 
     if (igen->pdgId()==22 && igen->isPromptFinalState()) {
       //if (igen->pdgId()==22 && igen->fromHardProcessFinalState()) {
@@ -90,7 +91,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
       //(igen->fromHardProcessFinalState() || igen->mother()->pdgId()==25 || igen->mother()->mother()->pdgId()==25)){
       tmp.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
       gen_photons.push_back(tmp);
-      
+
     }
 
     //if (yes && igen->pdgId()==22 && igen->status()==1){
@@ -107,9 +108,9 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   if (gen_photons.size()<2){
     ncnt++;
     for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
-      
+
       hists->fill1DHist(igen->pdgId(),"pdg_id","All PDGs", 40,-20,20, ww, "PDG");
-      
+
       if (igen->pdgId()==25){
 	std::cout<<ncnt<<"\t\t 777 Found the HIGGS! 777"<<std::endl;
 	//std::cout<<"\t Its *mother* is: "<<igen->mother()->pdgId()<<std::endl;
@@ -128,7 +129,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 		std::cout<<"\t grand-daugheter "<<ddd<<"  PDG"<<igen->daughter(d)->daughter(dd)->daughter(ddd)->pdgId()
 			 <<" status = "<<igen->daughter(d)->daughter(dd)->daughter(ddd)->status()<<std::endl;
 	      }
-	      
+
 	    }
 	  }
 	}
@@ -136,10 +137,10 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
     }
  }
   */
- 
 
 
-  
+
+
   if (gen_photons.size()<2) return;
   CountEvents(1, "Two gen photons from HardProcess",ww,fcuts);
   FillHistoCounts(1, ww);
@@ -151,7 +152,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   gen_bjet1 = gen_bQ1;
   gen_bjet2 = gen_bQ2;
-  
+
   FHM->SetGamma1(gen_gamma1);
   FHM->SetGamma2(gen_gamma2);
 
@@ -164,19 +165,20 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   hists->fill1DHist(gen_bQ1.Pt(), Form("04_gen_bQ1_pt_%s_cut%i", "", 1),";p_{T}^{b}", 100,0,300,  ww, "GEN");
   hists->fill1DHist(gen_bQ2.Pt(), Form("04_gen_bQ2_pt_%s_cut%i", "", 1),";p_{T}^{#bar{b}}",100,0,300,  ww, "GEN");
-  
+
   hists->fill1DHist(gen_bQ1.Eta(), Form("04_gen_bQ1_eta_%s_cut%i", "", 1),";#eta^{b}", 50,-5,5,  ww, "GEN");
   hists->fill1DHist(gen_bQ2.Eta(), Form("04_gen_bQ2_eta_%s_cut%i", "", 1),";#eta^{#bar{b}}",50,-5,5,  ww, "GEN");
 
 
   // --
-  // GEN JETS: match them to b-quarks
+  // GEN JETS: matching them to b-quarks
   // --
   edm::Handle<reco::GenJetCollection> genJets;
   event.getByLabel(edm::InputTag("slimmedGenJets"), genJets);
 
   UInt_t jetInd = 0;
-  Float_t dRb1 = 9999, dRb2 = 9999;
+  Float_t dRcut = 0.7;
+  Float_t dRb1 = dRcut, dRb2 = dRcut;
 
   for( reco::GenJetCollection::const_iterator jet = genJets->begin(); jet != genJets->end(); ++jet ) {
 
@@ -189,12 +191,12 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
     //UInt_t ndau = jet->numberOfDaughters();
     //std::cout<<"Daughters: "<<jet->numberOfDaughters()<<std::endl;
 
-    //if (fabs(jet->eta())<2){ 
+    //if (fabs(jet->eta())<2){
       //std::cout<<"\t XXX Event number = "<<eventNumber<<std::endl;
-      //for (UInt_t n = 0; n<ndau; n++){ 
-	//CandidatePtr daughterPtr( size_type i ) const 
-	
-	//const reco::Candidate *jetDau = jet->daughter(n);      
+      //for (UInt_t n = 0; n<ndau; n++){
+	//CandidatePtr daughterPtr( size_type i ) const
+
+	//const reco::Candidate *jetDau = jet->daughter(n);
 	//std::cout<<n<<"  PDG="<<jet->daughter(n)->pdgId()<<"  status="<<jet->daughter(n)->status()<<std::endl;
 	//std::cout<<n<<"  PDG="<<jetDau->pdgId()<<"  status="<<jetDau->status()<<std::endl;
     //}
@@ -203,12 +205,12 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
     // Does not work from Gen-jets:
     //std::cout<<"Jet Hadron Flavour "<<jet->hadronFlavour()
     //<<"Parton Flavour "<<jet->partonFlavour()<<std::endl;
-    
-    if (tmp.DeltaR(gen_bQ1) < dRb1) {
+    const Float_t dptcut = 0.3;
+    if (tmp.DeltaR(gen_bQ1) < dRb1 && (gen_bQ1.Pt()-tmp.Pt())/gen_bQ1.Pt() < dptcut ) {
       gen_bjet1 = tmp;
       dRb1 = tmp.DeltaR(gen_bQ1);
     }
-    if (tmp.DeltaR(gen_bQ2) < dRb2){
+    if (tmp.DeltaR(gen_bQ2) < dRb2 && (gen_bQ2.Pt()-tmp.Pt())/gen_bQ2.Pt() < dptcut ) {
       gen_bjet2 = tmp;
       dRb2 = tmp.DeltaR(gen_bQ2);
     }
@@ -230,31 +232,44 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
 
   }
 
-  hists->fill1DHist(dRb1, "dR_jetb1",";#DeltaR(jet, b-quark)", 50, 0,1.2, ww, "GEN");
-  hists->fill1DHist(dRb2, "dR_jetb2",";#DeltaR(jet, #bar{b}-quark)", 50, 0,1.2, ww, "GEN");
+
 
   Float_t Mbb = (gen_bQ1+gen_bQ2).M();
   Float_t dRbb = gen_bQ1.DeltaR(gen_bQ2);
+
+  if (gen_jets.size()<2) return;
+  if (dRb1>dRcut || dRb2>dRcut) return;
+  if (gen_bjet1.Pt() == gen_bjet2.Pt() && gen_bjet1.DeltaR(gen_bjet2)<0.01) return;
+    //std::cout<<totEvents<<"\t\t These the jets are the same!\t dRb1="<<dRb1<<" dRb2="<<dRb2<<"  dRbb="<<dRbb<<std::endl;
+
+  CountEvents(2, "Two gen Jets in event matched to b-quarks",ww,fcuts);
+  FillHistoCounts(2, ww);
+
+  sort(gen_jets.begin(), gen_jets.end(), P4SortCondition);
+
+
+  hists->fill1DHist(dRb1, "dR_jetb1",";#DeltaR(jet, b-quark)", 50, 0,dRcut, ww, "GEN");
+  hists->fill1DHist(dRb2, "dR_jetb2",";#DeltaR(jet, #bar{b}-quark)", 50, 0,dRcut, ww, "GEN");
+
+  hists->fill1DHist((gen_bQ1.Pt()-tmp.Pt())/gen_bQ1.Pt(), "dPtOverPt",
+		    ";(p_{T}^{quark} - p_{T}^{jet})/p_{T}^{quark})", 50, 0,1, ww, "GEN");
+
+  hists->fill1DHist(gen_bQ1.Eta(), "Eta_b",";#eta of b-quark", 100, -5, 5, ww, "GEN");
+  hists->fill1DHist(gen_bQ2.Eta(), "Eta_bbar",";#eta of #bar{b}-quark", 100, -5, 5, ww, "GEN");
 
   hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 100, 124.5, 125.5, ww, "GEN");
   hists->fill1DHist(dRbb, "dR_bb",";#DeltaR(b, #bar{b})", 50, 0,5, ww, "GEN");
 
 
-  hists->fill2DHist(gen_bQ1.Eta()-gen_bQ2.Eta(), gen_bQ1.DeltaPhi(gen_bQ2), 
+  hists->fill2DHist(gen_bQ1.Eta()-gen_bQ2.Eta(), gen_bQ1.DeltaPhi(gen_bQ2),
 		    "dEta_dPhi",";#DeltaEta(b, #bar{b});#DeltaPhi(b, #bar{b})", 50, -5,5, 50, -3.15, 3.15, ww, "GEN");
 
-  
-  if (gen_jets.size()<2) return;
-  CountEvents(2, "Two gen Jets in event",ww,fcuts);
-  FillHistoCounts(2, ww);
-
-  sort(gen_jets.begin(), gen_jets.end(), P4SortCondition);
 
   //gen_bjet1 = gen_jets[0];
   //gen_bjet2 = gen_jets[1];
 
   // Here swithch to the actual jets.
-  // The jets aer those that match to the given quark 1=b, 2=bbar 
+  // The jets aer those that match to the given quark 1=b, 2=bbar
   FHM->SetBJet1(gen_bjet1);
   FHM->SetBJet2(gen_bjet2);
 

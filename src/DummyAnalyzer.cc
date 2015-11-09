@@ -19,8 +19,10 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   // This is the HistoManager class (notice, no underscore): 
   hists    = new HistManager(fs.getBareDirectory()->GetFile());
 
-  fcuts.open("./out_cutlist.txt", ofstream::out);
-  fout.open("./out_synch_.txt",ofstream::out);
+  open_temp("/tmp", "out_cutlist", fcuts);  
+  //open_temp("/tmp", '', fout);  
+  //fcuts.open("./out_cutlist.txt", ofstream::out);
+  //fout.open("./out_synch_.txt",ofstream::out);
   fout.precision(3); fout.setf(ios::fixed, ios::floatfield);
   
   W0=1;
@@ -106,4 +108,22 @@ void DummyAnalyzer::FillHistoCounts(Int_t num, Double_t wei)
 {
   hists->fill1DHist(num, "evt_byCut",";cut;weighted events", nC+1, -1,nC, wei, "Counts");
   hists->fill1DHist(num, "evt_byCut_raw", ";cut;events",     nC+1, -1,nC, 1, "Counts");
+}
+
+std::string DummyAnalyzer::open_temp(std::string path, std::string nm, std::ofstream& f) {
+  // This piece of code is taken from:
+  // http://stackoverflow.com/questions/499636/how-to-create-a-stdofstream-to-a-temp-file
+  // It is usefull for creating temp files in ofstream etc.
+  path += "/"+nm+"_XXXXXX";
+  std::vector<char> dst_path(path.begin(), path.end());
+  dst_path.push_back('\0');
+  
+  int fd = mkstemp(&dst_path[0]);
+  if(fd != -1) {
+    path.assign(dst_path.begin(), dst_path.end() - 1);
+    f.open(path.c_str(),
+	   std::ios_base::trunc | std::ios_base::out);
+    close(fd);
+  }
+  return path;
 }
