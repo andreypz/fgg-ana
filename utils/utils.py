@@ -29,7 +29,7 @@ makePdfList    = [a.strip() for a in (conf.get("selection","makePdfList")).split
 rebinList      = [a.strip() for a in (conf.get("selection","rebinList")).split(',')]
 print 'No-Overflow list = ', noOverflowList
 
-myGoodListOfColors = [38, 46, 8, 40, 13, 41]
+myGoodListOfColors = [38, 46, 8, 41, 13, 40]
 
 class AutoVivification(dict):
   """Implementation of perl's autovivification feature."""

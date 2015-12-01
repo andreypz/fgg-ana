@@ -1,15 +1,38 @@
 #include "../interface/Angles.h"
 
 // Constructor, set default values
-ZGAngles::ZGAngles():
+Angles::Angles():
   _costheta_lplus(-99),
   _costheta_lminus(-88),
   _phi(-77),
   _cosTheta(-66)
 {}
-ZGAngles::~ZGAngles(){}
+Angles::~Angles(){}
 
-void ZGAngles::SetAngles(const TLorentzVector& lplus, const TLorentzVector& lminus, const TLorentzVector& gamma)
+
+float Angles::getCosThetaStar_CS(TLorentzVector h1, TLorentzVector h2, float ebeam) {
+  // cos theta star angle in the Collins Soper frame
+  // Copied directly from here: https://github.com/ResonantHbbHgg/Selection/blob/master/selection.h#L3367-L3385
+  TLorentzVector p1, p2;
+  p1.SetPxPyPzE(0, 0,  ebeam, ebeam);
+  p2.SetPxPyPzE(0, 0, -ebeam, ebeam);
+
+  TLorentzVector hh;
+  hh = h1 + h2;
+
+  TVector3 boost = - hh.BoostVector();
+  p1.Boost(boost);
+  p2.Boost(boost);
+  h1.Boost(boost);
+
+  TVector3 CSaxis = p1.Vect().Unit() - p2.Vect().Unit();
+  CSaxis.Unit();
+
+  return cos(   CSaxis.Angle( h1.Vect().Unit() )    );
+}
+
+
+void Angles::SetZGAngles(const TLorentzVector& lplus, const TLorentzVector& lminus, const TLorentzVector& gamma)
 {
   //Set the angles (they are private variables of the class)
 
@@ -31,7 +54,7 @@ void ZGAngles::SetAngles(const TLorentzVector& lplus, const TLorentzVector& lmin
 
   TLorentzVector beamAxis_CM(beamAxis);
   beamAxis_CM.Boost(b1);
-  
+
 
   //------------------------//
   //- Rotating the CM frame://
@@ -90,8 +113,8 @@ void ZGAngles::SetAngles(const TLorentzVector& lplus, const TLorentzVector& lmin
 
   //cout<<"lplus in Z frame: px = "<<lplus_inZFrame.Px()<<"  py = "<<lplus_inZFrame.Py()<<endl;
   //cout<<"lminus in Z frame: px = "<<lminus_inZFrame.Px()<<"  py = "<<lminus_inZFrame.Py()<<endl;
-  
-  
+
+
 
   //ATT:
   //There are some problems with other definitions (c2, and c3). They are not always the same
@@ -119,7 +142,7 @@ void ZGAngles::SetAngles(const TLorentzVector& lplus, const TLorentzVector& lmin
 
 
 }
-void ZGAngles::GetAngles(double& costheta_lplus, double& costheta_lminus, double& phi, double& cosTheta)
+void Angles::GetZGAngles(double& costheta_lplus, double& costheta_lminus, double& phi, double& cosTheta)
 {
   //Just a simple getter to acces private angles
   costheta_lplus  = _costheta_lplus;
@@ -129,10 +152,10 @@ void ZGAngles::GetAngles(double& costheta_lplus, double& costheta_lminus, double
 }
 
 
-void ZGAngles::GetAngles(const TLorentzVector& lplus, const TLorentzVector& lminus, const TLorentzVector& g,
+void Angles::GetZGAngles(const TLorentzVector& lplus, const TLorentzVector& lminus, const TLorentzVector& g,
 			 double& costheta_lplus, double& costheta_lminus, double& phi, double& cosTheta)
 {
-  SetAngles(lminus, lplus, g);
+  SetZGAngles(lminus, lplus, g);
 
   costheta_lplus = _costheta_lplus;
   costheta_lminus = _costheta_lminus;
@@ -140,7 +163,7 @@ void ZGAngles::GetAngles(const TLorentzVector& lplus, const TLorentzVector& lmin
   cosTheta = _cosTheta;
 }
 
-double ZGAngles::GetCos1(){return _costheta_lplus;}
-double ZGAngles::GetCos2(){return _costheta_lminus;}
-double ZGAngles::GetCosTheta(){return _cosTheta;}
-double ZGAngles::GetPhi(){return _phi;}
+double Angles::GetCos1(){return _costheta_lplus;}
+double Angles::GetCos2(){return _costheta_lminus;}
+double Angles::GetCosTheta(){return _cosTheta;}
+double Angles::GetPhi(){return _phi;}

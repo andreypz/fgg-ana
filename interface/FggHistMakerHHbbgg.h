@@ -19,7 +19,7 @@ class FggHistMakerHHbbgg : public FggHistMakerBase {
   virtual void SetBJet1(TLorentzVector );
   virtual void SetBJet2(TLorentzVector );
   virtual void SetMet(TVector2 );
-  virtual void Reset(float r, UInt_t n);
+  virtual void Reset(float r, UInt_t n, ULong_t e=1);
 
  private:
 
@@ -35,7 +35,7 @@ class FggHistMakerHHbbgg : public FggHistMakerBase {
   Float_t _rhoFactor;
   UInt_t _nVtx;
   
-  ZGAngles *angles;
+  Angles *angles;
 
 };
 

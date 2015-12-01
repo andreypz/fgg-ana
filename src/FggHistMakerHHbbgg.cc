@@ -12,15 +12,17 @@ FggHistMakerHHbbgg::FggHistMakerHHbbgg(HistManager *h):
   _nVtx(0)
 {
   cout<<"\t HHHHHHH \t HHbbggHistmaker constractor"<<endl;
-  angles = new ZGAngles();
+  angles = new Angles();
 }
 
 FggHistMakerHHbbgg::~FggHistMakerHHbbgg(){}
 
-void FggHistMakerHHbbgg::Reset(float rho, UInt_t n){
+void FggHistMakerHHbbgg::Reset(float rho, UInt_t n, ULong_t ev){
   _isGamma1Set=0; _isGamma2Set=0;
   _isBJet1Set=0; _isBJet2Set=0; _isMetSet=0;
-  _rhoFactor = rho; _nVtx=n;}
+  _rhoFactor = rho; _nVtx=n;
+  FggHistMakerBase::SetEventNumber(ev);
+}
 
 void FggHistMakerHHbbgg::SetVtx(reco::Vertex v){
   _pv=v; _isVtxSet = 1;}
@@ -93,18 +95,41 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
   if (_isGamma1Set && _isGamma2Set && _isBJet1Set && _isBJet2Set){
 
     Float_t Mbbgg = (_gamma1 + _gamma2 + _bjet1 + _bjet2).M();
-    
+
     hists->fill1DHist(Mbbgg, Form("00_Mbbgg_r1_%s_cut%i", d, num),";m(#gamma#gamma jj), GeV", 100, 100,900, weight, dir);
     hists->fill1DHist(Mbbgg, Form("00_Mbbgg_r2_%s_cut%i", d, num),";m(#gamma#gamma jj), GeV", 100, 0,1500, weight, dir);
 
+
+
+    float cosCS = angles->getCosThetaStar_CS(_gamma1+_gamma2, _bjet1+_bjet2, 3500);
+    hists->fill1DHist(cosCS, Form("cosThetaStarCS_%s_cut%i", d,num), ";cos(#theta*)_{CS}", 100,-1,1, weight,dir);
+
+
     //ZGanlgles:
     double co1,co2,phi,co3;
-    angles->GetAngles(_gamma1, _gamma2, _bjet1+_bjet2, co1,co2,phi,co3);
+    // Angles with H(bb) 
+    // Semi-random swap of the two photons (to mimic +/- charge of them)
+    string tag = "Angles-bb";
+    if (_eventNumber%2==0)
+      angles->GetZGAngles(_gamma1, _gamma2, _bjet1+_bjet2, co1,co2,phi,co3);
+    else
+      angles->GetZGAngles(_gamma2, _gamma1, _bjet1+_bjet2, co1,co2,phi,co3);
 
-    hists->fill1DHist(co1, Form("co1_cut%i", num), ";cos(#vec{l-},#vec{Z}) in CM", 100,-1,1, weight,"Angles");
-    hists->fill1DHist(co2, Form("co2_cut%i", num), ";cos(#vec{l+},#vec{Z}) in CM", 100,-1,1, weight,"Angles");
-    hists->fill1DHist(co3, Form("co3_cut%i", num), ";cos(#Theta)",                 100,-1,1, weight,"Angles");
-    hists->fill1DHist(phi, Form("phi_cut%i", num), ";#phi(l+)",50, -TMath::Pi(), TMath::Pi(),weight,"Angles");
+   
+    hists->fill1DHist(co1, Form("co1_%s_cut%i", tag.c_str(),num), ";cos(#vec{#gamma_{1}},#vec{H(b#bar{b}})) in CM", 100,-1,1, weight,tag);
+    hists->fill1DHist(co2, Form("co2_%s_cut%i", tag.c_str(),num), ";cos(#vec{#gamma_{2}},#vec{H(b#bar{b}})) in CM", 100,-1,1, weight,tag);
+    hists->fill1DHist(co3, Form("co3_%s_cut%i", tag.c_str(),num), ";cos(#Theta)", 100,-1,1, weight,tag);
+    hists->fill1DHist(phi, Form("phi_%s_cut%i", tag.c_str(),num), ";#phi(#gamma_{1})",50, -TMath::Pi(), TMath::Pi(),weight,tag);
+
+    // Now the angles with H(gg) 
+    tag = "Angles-gg";
+    angles->GetZGAngles(_bjet1, _bjet2, _gamma1+_gamma2, co1,co2,phi,co3);
+    
+    hists->fill1DHist(co1, Form("co1_%s_cut%i", tag.c_str(),num), ";cos(#vec{b},#vec{H(#gamma#gamma)}) in CM", 100,-1,1, weight,tag);
+    hists->fill1DHist(co2, Form("co2_%s_cut%i", tag.c_str(),num), ";cos(#vec{#bar{b}},#vec{H(#gamma#gamma)}) in CM", 100,-1,1, weight,tag);
+    hists->fill1DHist(co3, Form("co3_%s_cut%i", tag.c_str(),num), ";cos(#Theta)", 100,-1,1, weight,tag);
+    hists->fill1DHist(phi, Form("phi_%s_cut%i", tag.c_str(),num), ";#phi(b)",50, -TMath::Pi(), TMath::Pi(),weight,tag);
+
 
   }
 

@@ -1,5 +1,5 @@
-#ifndef _ZGAngles_H
-#define _ZGAngles_H
+#ifndef _Angles_H
+#define _Angles_H
 
 
 #include "TLorentzVector.h"
@@ -9,18 +9,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-class ZGAngles {
+class Angles {
  public:
-  ZGAngles();
-  virtual ~ZGAngles();
-  void SetAngles(const TLorentzVector& l1, const TLorentzVector& l2, const TLorentzVector& g);
-  void GetAngles(double& cos1, double& cos2, double& phi, double& cos3);
-  void GetAngles(const TLorentzVector& l1, const TLorentzVector& l2, const TLorentzVector& g, double& cos1, double& cos2, double& phi, double& cos3);
+  Angles();
+  virtual ~Angles();
+  float getCosThetaStar_CS(TLorentzVector h1, TLorentzVector h2, float ebeam = 3500);
+  void SetZGAngles(const TLorentzVector& l1, const TLorentzVector& l2, const TLorentzVector& g);
+  void GetZGAngles(double& cos1, double& cos2, double& phi, double& cos3);
+  void GetZGAngles(const TLorentzVector& l1, const TLorentzVector& l2, const TLorentzVector& g, double& cos1, double& cos2, double& phi, double& cos3);
   double GetCos1();
   double GetCos2();
   double GetCosTheta();
   double GetPhi();
-
+    
  private:
   double _costheta_lplus, _costheta_lminus, _phi, _cosTheta;
 };

@@ -48,7 +48,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   CountEvents(0, "Ntuple events",ww,fcuts);
   FillHistoCounts(0, ww);
 
-  FHM->Reset(1, 1);
+  FHM->Reset(1, 1, eventNumber);
 
   edm::Handle<vector<reco::GenParticle> > genParts;
   event.getByLabel( myGen_, genParts );
@@ -205,7 +205,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
     // Does not work from Gen-jets:
     //std::cout<<"Jet Hadron Flavour "<<jet->hadronFlavour()
     //<<"Parton Flavour "<<jet->partonFlavour()<<std::endl;
-    const Float_t dptcut = 0.3;
+    const Float_t dptcut = 0.6;
     if (tmp.DeltaR(gen_bQ1) < dRb1 && fabs(gen_bQ1.Pt()-tmp.Pt())/gen_bQ1.Pt() < dptcut ) {
       gen_bjet1 = tmp;
       dRb1 = tmp.DeltaR(gen_bQ1);
@@ -246,7 +246,7 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   hists->fill1DHist(gen_bQ1.Eta(), "Eta_b",";#eta of b-quark", 100, -5, 5, ww, "GEN");
   hists->fill1DHist(gen_bQ2.Eta(), "Eta_bbar",";#eta of #bar{b}-quark", 100, -5, 5, ww, "GEN");
 
-  hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 100, 124.8, 125.2, ww, "GEN");
+  hists->fill1DHist(Mbb, "Mbb",";m(bb), GeV", 100, 124.85, 125.1, ww, "GEN");
   hists->fill1DHist(dRbb, "dR_bb",";#DeltaR(b, #bar{b})", 50, 0,5, ww, "GEN");
 
 
@@ -298,8 +298,6 @@ void GenAnalyzer::analyze(const edm::EventBase& event)
   // The jets aer those that match to the given quark 1=b, 2=bbar
   FHM->SetBJet1(gen_bjet1);
   FHM->SetBJet2(gen_bjet2);
-
-  FHM->MakeMainHistos(2, ww);
 
   CountEvents(6, "Two Jets w/ pT>25 and |eta|<5; mathced to b-quarks",ww,fcuts);
   FillHistoCounts(6, ww);

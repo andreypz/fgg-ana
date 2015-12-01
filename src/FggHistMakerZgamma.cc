@@ -14,7 +14,7 @@ FggHistMakerZgamma::FggHistMakerZgamma(HistManager *h):
   _nVtx(0)
 {
   cout<<"\t HHHHHHH \t ZGammaHistmaker constractor"<<endl;
-  angles = new ZGAngles();
+  angles = new Angles();
 }
 
 FggHistMakerZgamma::~FggHistMakerZgamma(){}
@@ -188,7 +188,7 @@ void FggHistMakerZgamma::MakeMainHistos(Int_t num, Double_t weight, string dir)
     
     //ZGanlgles:
     double co1,co2,phi,co3;
-    angles->GetAngles(l1, l2, _gamma,co1,co2,phi,co3);
+    angles->GetZGAngles(l1, l2, _gamma,co1,co2,phi,co3);
     
     hists->fill1DHist(co1, Form("co1_cut%i", num), ";cos(#vec{l-},#vec{Z}) in CM", 100,-1,1, weight,"Angles");
     hists->fill1DHist(co2, Form("co2_cut%i", num), ";cos(#vec{l+},#vec{Z}) in CM", 100,-1,1, weight,"Angles");

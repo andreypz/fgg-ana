@@ -1,12 +1,14 @@
 #include "../interface/FggHistMakerBase.h"
 
-FggHistMakerBase::FggHistMakerBase(HistManager *h)
+FggHistMakerBase::FggHistMakerBase(HistManager *h):
+  _eventNumber(1)
 {
   hists = h;
 }
 
 FggHistMakerBase::~FggHistMakerBase(){}
 
+void FggHistMakerBase::SetEventNumber(ULong_t ev){ _eventNumber = ev;}
 
 void FggHistMakerBase::MakeMuonPlots(const flashgg::Muon& mu, string dir)
 {

@@ -39,7 +39,7 @@ class FggHistMakerZgamma : public FggHistMakerBase {
   Float_t _rhoFactor;
   UInt_t _nVtx;
   
-  ZGAngles *angles;
+  Angles *angles;
 
 };
 

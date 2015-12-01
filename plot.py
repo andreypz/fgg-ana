@@ -6,7 +6,7 @@ from ROOT import *
 sys.path.append("utils")
 import utils as u
 import makeHTML as ht
-
+import numpy as np
 gROOT.SetBatch()
 
 parser = OptionParser(usage="usage: %prog plots-version-path [options -c, -e, -p, -m]")
@@ -40,7 +40,7 @@ sel  = opt.sel
 
 comments = ["Bla",
             "Bla bla"]
-HHresMass = ['250','340','600']
+HHresMass = ['250','300','340','350','400','450','500','600','700','800','900']
 
 doLumiScale = 1
 if opt.evt: doLumiScale=0
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     sigFileVBF  = sigVBF['125']
     sigFileVH   = sigVH['125']
   except KeyError:
-    print 'Key error?  Who cares...'
+    print 'Key error in single H?  Who cares...'
     sigFileGG = sigFileVBF = sigFileVH = None
 
   sigFileZjp  = TFile(hPath+"/hhhh_ZtoJPsiGamma_1.root",     "OPEN")
@@ -158,9 +158,10 @@ if __name__ == "__main__":
       yields_radi = {}
       for m in HHresMass:
         yields_grav[m]   = u.getYields(sigGrav[m])
-      
+        yields_radi[m]   = u.getYields(sigRadi[m])
+
     # print 'Total sig yi', yields_sig
-    
+
     # subdir = 'DY'
     # path = pathBase+"/"+subdir
     # if doBkg:
@@ -178,7 +179,7 @@ if __name__ == "__main__":
                [sigGrav['250'], sigRadi['250'], sigGrav['600'], sigRadi['600']])
   #sigZip = zip(['Grav 250','Grav 340','Grav 600'],
   #             [sigGrav['250'], sigGrav['340'], sigGrav['600']])
-  
+
 
   if opt.bkg:
     print
@@ -196,18 +197,18 @@ if __name__ == "__main__":
 
   if opt.extra:
     # For the plots where cut number is set:
-    for n in ['Angles','N']:
+    for n in ['Angles','Angles-bb','Angles-gg']:
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, cut, "norm")
       else:
         u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, cut, "norm")
 
     # For the cases without cut number:
-    for n in ['Photon','Ele']:
+    for n in ['Photon','Ele','N']:
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, None, "norm")
-      
-    for n in ['GEN','GEN-ANG1','GEN-ANG2']:
+
+    for n in ['GEN']:
       u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
 
 
@@ -215,6 +216,50 @@ if __name__ == "__main__":
 
   if opt.spec:
     print 'Doing special plotting'
+    u.createDir(pathBase+'/Spec')
+    c1 = TCanvas("c4","small canvas",600,600);
+    if sel=='hhbbgg':
+      # DO the acc vs mass
+      accept_grav = []
+      accept_radi = []
+      for m in HHresMass:
+        print m,'Grav yields:\n', yields_grav[m]
+        print m,'Radi yields:\n', yields_radi[m]
+        accept_grav.append(yields_grav[m][8]/yields_grav[m][3])
+        accept_radi.append(yields_radi[m][8]/yields_radi[m][3])
+
+      massArray = np.array(HHresMass, dtype=float)
+      print '\t DBG: mass array', massArray
+      nPoints = len(massArray)
+      accept_array = np.array(accept_grav)
+      grAccGrav = TGraph(nPoints, massArray, accept_array)
+      print '\t DBG: grav graph:'
+      grAccGrav.Print('all')
+
+      accept_array = np.array(accept_radi)
+      grAccRadi = TGraph(nPoints, massArray, accept_array)
+      print '\t DBG: Radi graph:'
+      grAccRadi.Print('all')
+
+      grAccGrav.Draw('AP')
+      grAccRadi.Draw('same P')
+      grAccGrav.SetMarkerStyle(20)
+      grAccGrav.SetMarkerColor(kBlue)
+      grAccRadi.SetMarkerStyle(22)
+      grAccRadi.SetMarkerColor(kRed)
+
+      grAccGrav.SetMinimum(0)
+      grAccGrav.SetMaximum(1)
+      leg = TLegend(0.55,0.75,0.8,0.89)
+      leg.SetFillColor(kWhite)
+      leg.SetBorderSize(0)
+      leg.AddEntry(grAccGrav,'Graviton', 'p')
+      leg.AddEntry(grAccRadi,'Radion', 'p')
+      leg.Draw()
+      grAccGrav.SetTitle(';m_{X} (GeV); Acceptance')
+      c1.SaveAs(pathBase+'/Spec/acceptance_vs_mX.png')
+
+
     print 'End of special plotting'
 
   plot_types =[]
@@ -240,7 +285,7 @@ if __name__ == "__main__":
       elif sel=='hhbbgg':
         names = ['Grav M=%s'%m for m in HHresMass]
         table_all  = u.yieldsTable([yields_grav[m] for m in HHresMass], names)
-        
+
     else:
       table_all = ''
 

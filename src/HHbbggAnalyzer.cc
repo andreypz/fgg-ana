@@ -46,7 +46,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   CountEvents(0, "Ntuple events",ww,fcuts);
   FillHistoCounts(0, ww);
 
-  FHM->Reset(1, 1);
+  FHM->Reset(1, 1, eventNumber);
 
 
   /*
