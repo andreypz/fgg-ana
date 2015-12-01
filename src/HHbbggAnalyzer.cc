@@ -127,8 +127,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
  
   UInt_t nJets=0;
   for(UInt_t j = 0 ; j < jetsCol->at( 0 ).size() ; j++ ) {
+    //Why flashgg::Jet does not work?!
+    //flashgg::Jet jet = jetsCol->at(0)[j];
     pat::Jet jet = jetsCol->at(0)[j];
-        
+    
     //std::cout<<jetsCol->at(0)[j].pt()<<"  from pat = "<<jet.pt()<<std::endl;    
     if (jet.pt() > 30){
       TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
