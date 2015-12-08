@@ -27,7 +27,7 @@
 #include "PhysicsTools/UtilAlgos/interface/BasicAnalyzer.h"
 #include "HistManager.h"
 
-#define nC 10
+#define nC 13
 
 class DummyAnalyzer : public edm::BasicAnalyzer {
  public:

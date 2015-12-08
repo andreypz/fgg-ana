@@ -8,6 +8,8 @@
 <use   name="DataFormats/Common"/>
 <use   name="DataFormats/Provenance"/>
 <use   name="DataFormats/PatCandidates"/>
+<use   name="flashgg/DataFormats"/>
+<use   name="flashgg/bbggTools"/>
 <use   name="CommonTools/UtilAlgos"/>
 <use   name="CommonTools/Utils"/>
 <use   name="root"/>

@@ -18,17 +18,37 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   void endJob();
   void analyze(const edm::EventBase& event);
 
-  typedef std::vector<edm::Handle<edm::View<flashgg::Jet> > > JetCollectionVector;
+  //typedef std::vector<edm::Handle<edm::View<flashgg::Jet> > > JetCollectionVector;
+  /*
+  struct bTagSort{
+  bTagSort( const HHbbggAnalyzer& info ) : m_info(info) { }
+    // This is in order to sort the vector of jets by b-discriminatr,
+    // isng the bTag from the class memeber.
+    // Taken from here:
+    // http://stackoverflow.com/questions/1902311/problem-sorting-using-member-function-as-comparator
+    const HHbbggAnalyzer& m_info;
+    bool operator()( const flashgg::Jet& p1, const flashgg::Jet& p2){
+      return (p1.bDiscriminator(m_info.bTag) > p2.bDiscriminator(m_info.bTag));
+    }
+  };
+  */
+  
+  // This does not work because the static functions cant use the class member variables 
+  //statis bool bTagSort(const flashgg::Jet& p1, const flashgg::Jet& p2){
+  //return (p1.bDiscriminator(bTag) > p2.bDiscriminator(bTag));}
 
+  
  private:
   FggHistMakerHHbbgg *FHM;
-  bbggTools tools_;
+  bbggTools *tools;
 
+  string bTag;
+  edm::InputTag rhoFixedGrid_;
   // ORDER MATTERS:
-  std::vector<edm::InputTag> inputTagJets_;
+  //std::vector<edm::InputTag> inputTagJets_;
   std::vector<double> phoIDcutEB_;
   std::vector<double> phoIDcutEE_;
-  
+
 };
 
 

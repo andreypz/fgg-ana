@@ -40,7 +40,9 @@ sel  = opt.sel
 
 comments = ["Bla",
             "Bla bla"]
-HHresMass = ['250','300','340','350','400','450','500','600','700','800','900']
+
+HHresMass = ['300','650']
+#HHresMass = ['250','300','340','350','400','450','500','600','700','800','900']
 
 doLumiScale = 1
 if opt.evt: doLumiScale=0
@@ -134,10 +136,11 @@ if __name__ == "__main__":
   elif opt.zjp: sigFile = sigFileZjp
   else:         sigFile = sigFileGG
 
-  if sel=='mu':
-    dataFile = TFile(hPath+"/output_DoubleMuon.root","OPEN")
-  elif sel=='el':
-    dataFile = TFile(hPath+"/output_DoubleEG.root","OPEN")
+  if opt.data:
+    if sel=='mu':
+      dataFile = TFile(hPath+"/output_DoubleMuon.root","OPEN")
+    elif sel=='el':
+      dataFile = TFile(hPath+"/output_DoubleEG.root","OPEN")
 
 
   if opt.data:
@@ -175,8 +178,8 @@ if __name__ == "__main__":
   if opt.hjp: sigName= 'H #rightarrow J/Psi #gamma'
 
 
-  sigZip = zip(['Grav 250','Radi 250','Grav 600', 'Radi 600'],
-               [sigGrav['250'], sigRadi['250'], sigGrav['600'], sigRadi['600']])
+  sigZip = zip(['Grav 300','Radi 300','Grav 650', 'Radi 650'],
+               [sigGrav['300'], sigRadi['300'], sigGrav['650'], sigRadi['650']])
   #sigZip = zip(['Grav 250','Grav 340','Grav 600'],
   #             [sigGrav['250'], sigGrav['340'], sigGrav['600']])
 
@@ -208,8 +211,9 @@ if __name__ == "__main__":
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, None, "norm")
 
-    for n in ['GEN']:
-      u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
+    for n in ['GEN','bJet-Lead','bJet-Sub','Photon']:
+      u.drawAllInFile(dataFile, 'Data', bkgZip, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
+      #u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
 
 
 

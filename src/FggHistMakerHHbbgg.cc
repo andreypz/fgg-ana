@@ -68,7 +68,7 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
     TLorentzVector Hbb = _bjet1 + _bjet2;
     Float_t Mbjbj  = Hbb.M();
 
-    hists->fill1DHist(Mbjbj, Form("02_Mbjbj_%s_cut%i", d, num),";m(jj), GeV", 50, 50,350, weight, dir);
+    hists->fill1DHist(Mbjbj, Form("02_Mbjbj_%s_cut%i", d, num),";m(jj), GeV", 50, 20,360, weight, dir);
     hists->fill1DHist(Hbb.Pt(), Form("02_pT_bjbj_%s_cut%i", d, num),";p_{T}^{jj}", 100,0,600,  weight, dir);
 
     hists->fill1DHist(fabs(_bjet1.Eta() -_bjet2.Eta()), Form("03_deltaEta_j1_j2_%s_cut%i", d, num),
@@ -102,7 +102,7 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
 
 
     float cosCS = angles->getCosThetaStar_CS(_gamma1+_gamma2, _bjet1+_bjet2, 3500);
-    hists->fill1DHist(cosCS, Form("cosThetaStarCS_%s_cut%i", d,num), ";cos(#theta*)_{CS}", 100,-1,1, weight,dir);
+    hists->fill1DHist(cosCS, Form("cosThetaStarCS_%s_cut%i", d,num), ";cos(#theta*_{CS})", 50,-1,1, weight,dir);
 
 
     //ZGanlgles:

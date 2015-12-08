@@ -10,6 +10,43 @@ FggHistMakerBase::~FggHistMakerBase(){}
 
 void FggHistMakerBase::SetEventNumber(ULong_t ev){ _eventNumber = ev;}
 
+void FggHistMakerBase::MakeJetPlots(const flashgg::Jet& jet, string dir)
+{
+  
+  hists->fill1DHist(jet.bDiscriminator("pfCombinedInclusiveSecondaryVertexV2BJetTags"),dir+"_jet_btag_CISV",
+		    ";CISV b-tag discriminator", 50,0,1, 1, dir);
+  hists->fill1DHist(jet.jetCharge(),dir+"_jet_charge",";charge",  50,-2,2, 1, dir);
+  hists->fill1DHist(jet.chargedHadronEnergyFraction(),dir+"_jet_CHF",
+		    ";Charged Hadrons Energy Fraction",  50,0,1, 1, dir);
+  hists->fill1DHist(jet.neutralHadronEnergyFraction(),dir+"_jet_NHF",
+		    ";Neutral Hadrons Energy Fraction",  50,0,1, 1, dir);
+  hists->fill1DHist(jet.neutralEmEnergyFraction(),dir+"_jet_NEMF",
+		    ";Neutral EM Energy Fraction",  50,0,1, 1, dir);
+  hists->fill1DHist(jet.chargedEmEnergyFraction(),dir+"_jet_CEMF",
+		    ";Charged EM Energy Fraction",  50,0,1, 1, dir);
+  hists->fill1DHist(jet.muonEnergyFraction(),dir+"_jet_MUF",
+		    ";Muon Energy Fraction",  50,0,0.4, 1, dir);
+
+  hists->fill1DHist(jet.hoEnergyFraction(),dir+"_jet_hoF",
+		    ";HO Energy Fraction",  50,0,1, 1, dir);
+  hists->fill1DHist(jet.photonEnergyFraction(),dir+"_jet_photonEnergyFraction",
+		    ";Photon Energy Fraction",  50,0,1, 1, dir);
+  hists->fill1DHist(jet.electronEnergyFraction(),dir+"_jet_electronEnergyFraction",
+		    ";Electron Energy Fraction",  50,0,0.4, 1, dir);
+  hists->fill1DHist(jet.chargedHadronMultiplicity(),dir+"_jet_chargedHadronMultiplicity",
+		    ";Charged Hadron Multiplicity",  40,0,20, 1, dir);
+  hists->fill1DHist(jet.neutralHadronMultiplicity(),dir+"_jet_neutralHadronMultiplicity",
+		    ";Neutral Hadron Multiplicity",  40,0,20, 1, dir);
+
+  hists->fill1DHist(jet.chargedMultiplicity()+jet.neutralMultiplicity(),dir+"_jet_NumConst",
+		    ";Constituents",  80,0,40, 1, dir);
+  hists->fill1DHist(jet.nSubjetCollections(),dir+"_jet_nSubjetCollections",
+		    ";Number of Subjet Collections",  50,-3,3, 1, dir);
+  //hists->fill1DHist(jet.,dir+"_jet_",";",  50,0,20, 1, dir);
+  //hists->fill1DHist(jet.,dir+"_jet_",";",  50,0,20, 1, dir);
+  
+}
+
 void FggHistMakerBase::MakeMuonPlots(const flashgg::Muon& mu, string dir)
 {
 
@@ -97,7 +134,8 @@ void FggHistMakerBase::MakePhotonPlots(const flashgg::Photon& ph, string dir)
     hists->fill1DHist(ph.esEffSigmaRR(),dir+"ph_ESEffSigmaRR_x",";ESEffSigmaRR_x",100, -5e-8,5e-8, 1,dir);
     //hists->fill1DHist(ph.ESEffSigmaRR()[1],dir+"ph_ESEffSigmaRR_y",";ESEffSigmaRR_y",100, -5e-8,5e-8, 1,dir);
   }
-  //hists->fill1DHist(ph.IdMap("mvaScore"),    dir+"ph_mvaScore",      ";MVA score",     100, -1,1,   1,dir);
+  hists->fill1DHist(ph.photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"), dir+"ph_mvaScoreEGamma",
+		    ";EGamma MVA score",     100, -1,1,   1,dir);
   //hists->fill1DHist(ph.CiCPF4chgpfIso02()[0],dir+"ph_CiCPF4chgpfIso02", ";ph_CiCPF4chgpfIso02", 100, 0,5, 1,dir);
 
   /*
@@ -246,16 +284,16 @@ void FggHistMakerBase::MakeZeePlots(const flashgg::Photon& p1, const flashgg::Ph
 }
 
 
-void FggHistMakerBase::MakeNPlots(Int_t num, Int_t nmu, Int_t nele1, Int_t nele2, Int_t nphoHZG,
-			   Int_t nphoTight, Int_t nphoMVA, Int_t nJets, Double_t w)
+void FggHistMakerBase::MakeNPlots(Int_t num, UInt_t nphoCut, UInt_t nJets, UInt_t nbJets, Double_t w)
 {
-  hists->fill1DHist(nmu,       Form("size_mu_cut%i",  num), ";Number of muons",              5,0,5, w, "N");
-  hists->fill1DHist(nele1,     Form("size_el_cut%i",  num), ";Number of electrons (HZZ)",    5,0,5, w, "N");
-  hists->fill1DHist(nele2,     Form("size_el0_cut%i", num), ";Number of electrons (Loose)",  5,0,5, w, "N");
-  hists->fill1DHist(nphoHZG,   Form("size_phHZG_cut%i",  num), ";Number of photons (HZG)",   5,0,5, w, "N");
-  hists->fill1DHist(nphoTight, Form("size_phTight_cut%i",num), ";Number of photons (Tight)", 5,0,5, w, "N");
-  hists->fill1DHist(nphoMVA,   Form("size_phMVA_cut%i",  num), ";Number of photons (MVA)",   5,0,5, w, "N");
+  //hists->fill1DHist(nmu,       Form("size_mu_cut%i",  num), ";Number of muons",              5,0,5, w, "N");
+  //hists->fill1DHist(nele1,     Form("size_el_cut%i",  num), ";Number of electrons (HZZ)",    5,0,5, w, "N");
+  // hists->fill1DHist(nele2,     Form("size_el0_cut%i", num), ";Number of electrons (Loose)",  5,0,5, w, "N");
+  //hists->fill1DHist(nphoHZG,   Form("size_phHZG_cut%i",  num), ";Number of photons (HZG)",   5,0,5, w, "N");
+  hists->fill1DHist(nphoCut, Form("size_pho_cut%i",num), ";Number of photons (Cut based)", 5,0,5, w, "N");
+  //hists->fill1DHist(nphoMVA,   Form("size_phMVA_cut%i",  num), ";Number of photons (MVA)",   5,0,5, w, "N");
   hists->fill1DHist(nJets,     Form("size_jets_cut%i",   num), ";Number of Jets",            5,0,5, w, "N");
+  hists->fill1DHist(nbJets,    Form("size_bjets_cut%i",  num), ";Number of b-Jets",          5,0,5, w, "N");
 }
 
 float FggHistMakerBase::Zeppenfeld(const TLorentzVector& p, const TLorentzVector& pj1, const TLorentzVector& pj2)

@@ -299,7 +299,7 @@ def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDa
     print 'szip[0]:', sZip[0]
     isDir = sZip[0][1].cd(myDir)
   else:
-    print "Sorry can't draw anything, no files are provided!"
+    print "\t Sorry can't draw anything, no files are provided!"
     return #sys.exit(0)
 
   if not isDir:
