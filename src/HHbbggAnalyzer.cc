@@ -119,9 +119,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     //// ID from bbggTools
     if ( ( it->isEB() && tools->isPhoID(&(*it), phoIDcutEB_) ) ||
-      	 ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) )
-      	 )
-      {
+    	 ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) )
+    	 )
+     {
 	myPhotons.push_back(tmp);
 	FHM->MakePhotonPlots(*it);
       }
@@ -157,7 +157,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCol;
   event.getByLabel(jets_, jetsCol);
 
-  if (jetsCol->size()<=1) return;
+  if (jetsCol->size()<1) return;
 
   UInt_t nJets=0;
   for(UInt_t j = 0 ; j < jetsCol->at( 0 ).size() ; j++ ) {
@@ -181,7 +181,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       myJets.push_back(tmp);
 
       if (fabs(jet.eta()) > 2.5) continue;
-      if (tmp.DeltaR(gamma1) < 0.4 || tmp.DeltaR(gamma1) < 0.4) continue;
+      if (tmp.DeltaR(gamma1) < 0.4 || tmp.DeltaR(gamma2) < 0.4) continue;
 
       myJets25.push_back(tmp);
 
@@ -229,7 +229,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   FHM->MakeNPlots(2, myPhotons.size(), myJets.size(), bJets.size(), ww);
       
   if (myJets.size()<2) return;
-  CountEvents(2, "At least two Jets w/ pT>25 found in event (no b-tag)",ww,fcuts);
+  CountEvents(2, "At least two Jets w/ pT>25 (no b-tag)",ww,fcuts);
   FillHistoCounts(2, ww);
 
   if (myJets25.size()<2) return;
@@ -247,8 +247,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   CountEvents(4, "Two jets with bDissc > 0",ww,fcuts);
   FillHistoCounts(4, ww);
   FHM->MakeMainHistos(4, ww);
-
-
 
   CountEvents(5, "Reserved",ww,fcuts);
   FillHistoCounts(5, ww);
