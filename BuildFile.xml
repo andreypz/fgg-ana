@@ -8,6 +8,7 @@
 <use   name="DataFormats/Common"/>
 <use   name="DataFormats/Provenance"/>
 <use   name="DataFormats/PatCandidates"/>
+<use   name="DataFormats/VertexReco"/>
 <use   name="flashgg/DataFormats"/>
 <use   name="flashgg/bbggTools"/>
 <use   name="CommonTools/UtilAlgos"/>

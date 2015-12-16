@@ -32,12 +32,12 @@ class HHbbggAnalyzer : public DummyAnalyzer {
     }
   };
   */
-  
-  // This does not work because the static functions cant use the class member variables 
+
+  // This does not work because the static functions cant use the class member variables
   //statis bool bTagSort(const flashgg::Jet& p1, const flashgg::Jet& p2){
   //return (p1.bDiscriminator(bTag) > p2.bDiscriminator(bTag));}
 
-  
+
  private:
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
@@ -48,7 +48,9 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   //std::vector<edm::InputTag> inputTagJets_;
   std::vector<double> phoIDcutEB_;
   std::vector<double> phoIDcutEE_;
+  //edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
 
+  int cutFlow;
 };
 
 

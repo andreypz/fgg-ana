@@ -1,7 +1,8 @@
 # Analyzers to run over flash-gg microAOD ntuples
-To start you need to set up flashgg first, see here: 	https://github.com/cms-analysis/flashgg
+To begin with this analyzers you must to set up the *flashgg*  framework first, see here: https://github.com/cms-analysis/flashgg
+Then we need *bbgTools*, since some of the methods from there are used: https://github.com/ResonantHbbHgg/bbggTools
 
-Then, do:
+Finally, to get this code:
 ```
  cd $CMSSW_BASE/src
  mkdir APZ
@@ -18,10 +19,10 @@ where jobs_dy-el.json is the file prepared following instructions here: https://
 
 
 
-How to create your own analyzer:
- * Write src/MyAna.cc and interface/MyAna.h files. It is a good idea to inherit it from DummyAnalyzer (see my other analyzers: GenAna, ZgammaAna), but this is not necessary.
- * Make your executable file at bin/myAnaRun.cc, and include it in bin/Buildfile.xml
- * Create your config file, myana.py, and run it with fgg comand like this:
+## How to create your own analyzer:
+ * Write _src/MyAna.cc_ and _interface/MyAna.h_ files. It is a good idea to inherit it from DummyAnalyzer (see my other analyzers: GenAna, ZgammaAna), but this is not necessary.
+ * Make your executable file at _bin/myAnaRun.cc_, and include it in _bin/Buildfile.xml_
+ * Create your config file, _myana.py_, and run it with fgg comand like this:
 ```
  fggRunJobs.py --load jobs-myAna.json -d testDir -x myAnaRun myana.py  maxEvents=100
 ```
