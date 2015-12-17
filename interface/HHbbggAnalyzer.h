@@ -50,7 +50,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   std::vector<double> phoIDcutEE_;
   //edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
 
-  int cutFlow;
+  UInt_t cutFlow_;
+  UInt_t phoIDtype_;
 };
 
 

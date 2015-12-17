@@ -1,10 +1,14 @@
 #include "../interface/HHbbggAnalyzer.h"
 
+//typedef std::pair<std::string,bool> IdPair;
+
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
   //inputTagJets_(cfg.getParameter<std::vector<edm::InputTag> >( "inputTagJets" ) ),
   phoIDcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEB") ),
-  phoIDcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEE") )
+  phoIDcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEE") ),
+  cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
+  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") )
 {
   cout<<"\t HHHHHbbbbggggg \t Constructructor in "<<__PRETTY_FUNCTION__<<endl;
   FHM = new FggHistMakerHHbbgg(hists);
@@ -13,9 +17,6 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   bTag = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
-
-  cutFlow = 1; // NCU
-  //cutFlow = 2; //Rafael
   
 }
 
@@ -114,28 +115,43 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   for(std::vector<flashgg::Photon>::const_iterator it=photons->begin(); it!=photons->end(); ++it){
     TLorentzVector tmp = TLorentzVector(it->px(), it->py(), it->pz(), it->energy());
 
+    //float mva = -99;
+    Bool_t passID = false;
+
     if (it->pt() < 15) continue;
 
-    // Hgg MVA ID:
-    //https://github.com/cms-analysis/flashgg/blob/f1ad5f8c6d9b02481656c8beec8fc5e10ffa35b7/DataFormats/interface/Photon.h#L136
-    //// if lazy flag is true only compare key (needed since fwlite does not fill provenance info)
-    if (! (it->phoIdMvaDWrtVtx(CandVtx, true) > 0.3) ) continue;
-
+    switch ( phoIDtype_ ) {
+    case 1 :
+      // Cut based ID from bbggTools
+      passID =  (( it->isEB() && tools->isPhoID(&(*it), phoIDcutEB_) ) ||
+		 ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) ));
+      break;
+    case 2 :
+      
+      // Cut based ID stored in AOD/PAT/fgg
+      passID = it->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium");
+      //passID = it->photonID("cutBasedPhotonID-Spring15-25ns-V1-standalone-medium");
+      break;
+    case 3 :
+      // MVA ID stored in PAT object
+      
+      passID = it->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90");
+      break;
+      
+    case 4 :
+      // Hgg MVA ID:
+      //https://github.com/cms-analysis/flashgg/blob/f1ad5f8c6d9b02481656c8beec8fc5e10ffa35b7/DataFormats/interface/Photon.h#L136
+      //// if lazy flag is true only compare key (needed since fwlite does not fill provenance info)
+      passID = (it->phoIdMvaDWrtVtx(CandVtx, true) > 0.3);
+      break;
+    default : break;
+    }
+    
     //const std::vector<IdPair> IDs = it->photonIDs();
     //for (size_t t=0; t<IDs.size(); t++)
     //cout<<t<<"  ID name:"<<IDs[t].first<<"  ID pass?="<<IDs[t].second<<endl;
 
-    // Cut based ID stored in AOD/PAT/fgg
-    //if (! (it->photonID("PhotonCutBasedIDLoose")) ) continue;
-
-    //// Cut on MVA ID stored
-    //float mva = it->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90");
-    //if (! ( (it->isEB() && mva > 0.374) || (it->isEE() && mva > 0.336)) ) continue;
-
-    // ID from bbggTools
-    //if (! ( ( it->isEB() && tools->isPhoID(&(*it), phoIDcutEB_) ) ||
-    //	 ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) )
-    //	 ) ) continue
+    if (!passID) continue;
     
     myPhotons.push_back(tmp);
     FHM->MakePhotonPlots(*it);
@@ -251,7 +267,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   
   Float_t Mbjbj = (bjet1 + bjet2).M();
 
-  switch ( cutFlow ) {
+  switch ( cutFlow_ ) {
   case 1 :
    
     if (myJets.size()<2) return;
@@ -345,6 +361,40 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     CountEvents(4, "100 < m(gg) < 180 GeV",ww,fcuts);
     FillHistoCounts(4, ww);
     FHM->MakeMainHistos(4, ww);
+
+  
+    if (myJets25.size()<2) return;
+    CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(5, ww);
+
+    sort(myJets25.begin(), myJets25.end(), P4SortCondition);
+
+    if (bJets.size()<2) return;
+
+    CountEvents(6, "Two jets with bDissc > 0",ww,fcuts);
+    FillHistoCounts(6, ww);
+    FHM->MakeMainHistos(6, ww);
+
+
+    FHM->MakeJetPlots(bJets[0], "bJet-Lead");
+    FHM->MakeJetPlots(bJets[1], "bJet-Sub");
+
+    if (bjet1.Pt() < 25 || bjet2.Pt() < 25) return;
+    if (fabs(bjet1.Eta()) > 2.5 || fabs(bjet2.Eta()) > 2.5) return;
+
+    CountEvents(7, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(7, ww);
+    FHM->MakeMainHistos(7, ww);
+
+    FHM->MakeNPlots(7, myPhotons.size(), myJets.size(), bJets.size(), ww);
+
+
+    if ( Mbjbj < 60 || Mbjbj > 180) return;
+
+    CountEvents(8, "60 < m(jj) < 180 GeV",ww,fcuts);
+    FillHistoCounts(8, ww);
+    FHM->MakeMainHistos(8, ww);
+
 
     break;
    

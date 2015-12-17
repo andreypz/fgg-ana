@@ -32,6 +32,13 @@ import flashgg.Taggers.flashggTags_cff as flashggTags
 
 process.HHbbggAnalyzer = cms.PSet(
     ## input specific for this analyzer
+
+    # 1 - NCU; 2 - Rafael
+    cutFlow = cms.untracked.uint32(1),
+
+    # 1 - Cut Based Medium WP; 2 Cut based from PAT object; 3 - MVA ID from Egamma; 4 - Hgg MVA ID
+    phoIDtype = cms.untracked.uint32(1),
+
     lep  = cms.untracked.string('el'), # "mu" or "el"
     jetTag      = cms.InputTag('flashggFinalJets'), 
     muonTag     = cms.InputTag('flashggSelectedMuons'),
@@ -40,8 +47,8 @@ process.HHbbggAnalyzer = cms.PSet(
     genTag      = cms.InputTag('flashggPrunedGenParticles'),
     #inputTagJets= flashggTags.UnpackedJetCollectionVInputTag,
     lumiWeight = cms.double(1.),
-    phoIDcutEB=param._phoIDlooseEB,
-    phoIDcutEE=param._phoIDlooseEE,
+    phoIDcutEB=param._phoIDmediumEB,
+    phoIDcutEE=param._phoIDmediumEE,
     
 )
 
