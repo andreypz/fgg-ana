@@ -1,6 +1,7 @@
 #include "../interface/HHbbggAnalyzer.h"
 
 //typedef std::pair<std::string,bool> IdPair;
+Bool_t doGen=0;
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
@@ -8,6 +9,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   phoIDcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEB") ),
   phoIDcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEE") ),
   cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
+  useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
+  diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag")),
   phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") )
 {
   cout<<"\t HHHHHbbbbggggg \t Constructructor in "<<__PRETTY_FUNCTION__<<endl;
@@ -17,7 +20,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   bTag = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
-  
+
 }
 
 void HHbbggAnalyzer::beginJob()
@@ -62,43 +65,54 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   FHM->Reset(rhoFixedGrd, 1, eventNumber);
   tools->setRho(rhoFixedGrd);
 
+  if (!isRealData && doGen) {
+    //&& sdample = signal...
 
-  /*
     edm::Handle<vector<reco::GenParticle> > genParts;
     event.getByLabel( myGen_, genParts );
 
     std::vector<TLorentzVector> gen_photons, gen_jets;
     TLorentzVector gen_gamma1, gen_gamma2;
-    TLorentzVector gen_bjet1, gen_bjet2;
+    //TLorentzVector gen_bjet1, gen_bjet2;
     TLorentzVector gen_bQ1, gen_bQ2;
-
+    TLorentzVector tmp;
 
     for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
 
-    if (abs(igen->pdgId())==5 && igen->mother()->pdgId()==25) {
-    //std::cout<<totEvents<<"\t\t BBB Found b-quark from Higgs! BBB  Its status = "<<igen->status()<<std::endl;
+      if (abs(igen->pdgId())==5 && igen->mother()->pdgId()==25) {
 
-    tmp.SetPxPyPzE(igen->px(), igen->py(), igen->pz(), igen->energy());
-    if (igen->pdgId()==5)
-    gen_bQ1 = tmp;
-    else if (igen->pdgId()==-5)
-    gen_bQ2 = tmp;
-    }
+	//std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t BBB Found b-quark from Higgs! BBB  Its status = "<<igen->status()
+	//<<" Its charge = "<<igen->charge()<<std::endl;
+	tmp.SetPxPyPzE(igen->px(), igen->py(), igen->pz(), igen->energy());
+	if (igen->pdgId()==5)
+	  gen_bQ1 = tmp;
+	if (igen->pdgId()==-5)
+	  gen_bQ2 = tmp;
+      }
 
+      if (igen->pdgId()==22 && igen->isPromptFinalState()) {
+	tmp.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+	gen_photons.push_back(tmp);
 
-    if (igen->pdgId()==22 && igen->isPromptFinalState()) {
-    //if (igen->pdgId()==22 && igen->fromHardProcessFinalState()) {
-    //if (igen->pdgId()==22 && igen->status()==1 &&
-    //(igen->fromHardProcessFinalState() || igen->mother()->pdgId()==25 || igen->mother()->mother()->pdgId()==25)){
-    tmp.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
-    gen_photons.push_back(tmp);
-
-    }
+      }
 
     }
 
-  */
+    /*
+    sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
 
+    gen_gamma1 = gen_photons[0];
+    gen_gamma2 = gen_photons[1];
+
+    gen_bjet1 = gen_bQ1;
+    gen_bjet2 = gen_bQ2;
+
+    FHM->SetGamma1(gen_gamma1);
+    FHM->SetGamma2(gen_gamma2);
+
+    FHM->MakeMainHistos(0, ww, "GEN");
+    */
+  }
 
   vector<TLorentzVector> myLeptons, myPhotons;
 
@@ -112,58 +126,162 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   if (primaryVtcs->size()<1) return;
   const edm::Ptr<reco::Vertex> CandVtx(primaryVtcs, 0);
 
-  for(std::vector<flashgg::Photon>::const_iterator it=photons->begin(); it!=photons->end(); ++it){
-    TLorentzVector tmp = TLorentzVector(it->px(), it->py(), it->pz(), it->energy());
+  edm::Handle<std::vector<flashgg::DiPhotonCandidate> > diPhotons;
+  event.getByLabel(diPhotons_, diPhotons);
 
-    //float mva = -99;
-    Bool_t passID = false;
+  // This is to store the selected di-photons:
+  std::vector<flashgg::DiPhotonCandidate> myDiPho;
 
-    if (it->pt() < 15) continue;
+  if (useDiPhotons_) {
+    for(std::vector<flashgg::DiPhotonCandidate>::const_iterator it=diPhotons->begin(); it!=diPhotons->end(); ++it){
 
-    switch ( phoIDtype_ ) {
-    case 1 :
-      // Cut based ID from bbggTools
-      passID =  (( it->isEB() && tools->isPhoID(&(*it), phoIDcutEB_) ) ||
-		 ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) ));
-      break;
-    case 2 :
-      
-      // Cut based ID stored in AOD/PAT/fgg
-      passID = it->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium");
-      //passID = it->photonID("cutBasedPhotonID-Spring15-25ns-V1-standalone-medium");
-      break;
-    case 3 :
-      // MVA ID stored in PAT object
-      
-      passID = it->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90");
-      break;
-      
-    case 4 :
-      // Hgg MVA ID:
-      //https://github.com/cms-analysis/flashgg/blob/f1ad5f8c6d9b02481656c8beec8fc5e10ffa35b7/DataFormats/interface/Photon.h#L136
-      //// if lazy flag is true only compare key (needed since fwlite does not fill provenance info)
-      passID = (it->phoIdMvaDWrtVtx(CandVtx, true) > 0.3);
-      break;
-    default : break;
+      const flashgg::Photon *p1, *p2;
+      p1 = it->leadingPhoton();
+      p2 = it->subLeadingPhoton();
+
+      if (p2->pt() < 15) continue;
+
+      FHM->MakePhotonPlots(*p1, "DiPho-Lead");
+      FHM->MakePhotonPlots(*p2, "DiPho-Sub");
+
+      Bool_t passID = false;
+      switch ( phoIDtype_ ) {
+      case 1 :
+        // Cut based ID from bbggTools
+        passID = (( p1->isEB() && tools->isPhoID(&(*p1), phoIDcutEB_) ) ||
+		  ( p1->isEE() && tools->isPhoID(&(*p1), phoIDcutEE_) ));
+        passID = passID &&
+	  ( ( p2->isEB() && tools->isPhoID(&(*p2), phoIDcutEB_) ) ||
+	    ( p2->isEE() && tools->isPhoID(&(*p2), phoIDcutEE_))
+	    );
+
+	break;
+
+      case 2 :
+	// Cut based ID stored in AOD/PAT/fgg
+        passID = (p1->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium") &&
+		  p2->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium"));
+        break;
+
+      case 3 :
+	// EGamma MVA ID stored in the PAT object
+
+	// Cut on the value
+	//passID = (( it->isEB() && it->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values") > 0.374 ) ||
+	//        ( it->isEE() && it->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values") > 0.336 ));
+	// Use the boolean
+	passID = (p1->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90") &&
+		  p2->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"));
+	break;
+
+      case 4 :
+        // Hgg MVA ID:
+        //https://github.com/cms-analysis/flashgg/blob/f1ad5f8c6d9b02481656c8beec8fc5e10ffa35b7/DataFormats/interface/Photon.h#L136
+        //// if lazy flag is true only compare key (needed since fwlite does not fill provenance info)
+        passID = ((p1->phoIdMvaDWrtVtx(CandVtx, true) > 0.2) &&
+		  (p2->phoIdMvaDWrtVtx(CandVtx, true) > 0.2));
+
+        break;
+
+      case 5 :
+	// HEEP ID: TBD
+        break;
+
+      default : break;
+
+      }
+
+      passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
+      if (!passID) continue;
+
+      myDiPho.push_back(*it);
+
+      /* there is probably double-counting going on here. need to check
+	 TLorentzVector tmp = TLorentzVector(p1->px(), p1->py(), p1->pz(), p1->energy());
+	 myPhotons.push_back(tmp);
+	 tmp = TLorentzVector(p2->px(), p2->py(), p2->pz(), p2->energy());
+	 myPhotons.push_back(tmp);
+      */
     }
-    
-    //const std::vector<IdPair> IDs = it->photonIDs();
-    //for (size_t t=0; t<IDs.size(); t++)
-    //cout<<t<<"  ID name:"<<IDs[t].first<<"  ID pass?="<<IDs[t].second<<endl;
+  }
+  else { // Use regular photons
+    for(std::vector<flashgg::Photon>::const_iterator it=photons->begin(); it!=photons->end(); ++it){
+      TLorentzVector tmp = TLorentzVector(it->px(), it->py(), it->pz(), it->energy());
 
-    if (!passID) continue;
-    
-    myPhotons.push_back(tmp);
-    FHM->MakePhotonPlots(*it);
+      Bool_t passID = false;
 
+      if (it->pt() < 15) continue;
+
+      FHM->MakePhotonPlots(*it);
+
+      //std::vector<std::string> labels = it->userFloatNames();
+      //for (size_t l = 0; l<labels.size(); l++)
+      //cout<<labels[l]<<endl;
+      //return;
+
+      switch ( phoIDtype_ ) {
+      case 1 :
+        // Cut based ID from bbggTools
+        passID = (( it->isEB() && tools->isPhoID(&(*it), phoIDcutEB_) ) ||
+		  ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) ));
+        break;
+
+      case 2 :
+
+        // Cut based ID stored in AOD/PAT/fgg
+        passID = it->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium");
+        //passID = it->photonID("cutBasedPhotonID-Spring15-25ns-V1-standalone-medium");
+        break;
+
+      case 3 :
+        // EGamma MVA ID stored in the PAT object
+
+        // Cut on the value
+        //passID = (( it->isEB() && it->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values") > 0.374 ) ||
+        //	( it->isEE() && it->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values") > 0.336 ));
+        // Use the boolean
+        passID = it->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90");
+        break;
+
+      case 4 :
+        // Hgg MVA ID:
+        //https://github.com/cms-analysis/flashgg/blob/f1ad5f8c6d9b02481656c8beec8fc5e10ffa35b7/DataFormats/interface/Photon.h#L136
+        //// if lazy flag is true only compare key (needed since fwlite does not fill provenance info)
+        passID = (it->phoIdMvaDWrtVtx(CandVtx, true) > 0.2);
+	break;
+
+      default : break;
+      }
+
+      //const std::vector<IdPair> IDs = it->photonIDs();
+      //for (size_t t=0; t<IDs.size(); t++)
+      //cout<<t<<"  ID name:"<<IDs[t].first<<"  ID pass?="<<IDs[t].second<<endl;
+
+      passID = passID && it->passElectronVeto();
+      if (!passID) continue;
+
+      myPhotons.push_back(tmp);
+    }
   }
 
 
-  sort(myPhotons.begin(), myPhotons.end(), P4SortCondition);
+  TLorentzVector gamma1, gamma2;
 
-  if (myPhotons.size()<2) return;
-  TLorentzVector gamma1 = myPhotons[0];
-  TLorentzVector gamma2 = myPhotons[1];
+  if (useDiPhotons_){
+    if (myDiPho.size()<1) return;
+    const flashgg::Photon *p1, *p2;
+    p1 = myDiPho[0].leadingPhoton();
+    p2 = myDiPho[0].subLeadingPhoton();
+    gamma1 = TLorentzVector(p1->px(), p1->py(), p1->pz(), p1->energy());
+    gamma2 = TLorentzVector(p2->px(), p2->py(), p2->pz(), p2->energy());
+  }
+  else{
+
+    sort(myPhotons.begin(), myPhotons.end(), P4SortCondition);
+    if (myPhotons.size()<2) return;
+    gamma1 = myPhotons[0];
+    gamma2 = myPhotons[1];
+  }
 
   CountEvents(1, "Two Photons reconstructed",ww,fcuts);
   FillHistoCounts(1, ww);
@@ -181,13 +299,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   event.getByLabel(jets_, jetsCol);
 
   if (jetsCol->size()<1) return;
-  
+
   UInt_t nJets=0;
   for(UInt_t j = 0 ; j < jetsCol->at( 0 ).size() ; j++ ) {
     flashgg::Jet jet = jetsCol->at(0)[j];
 
     //edm::Ptr<flashgg::Jet> jet(jetsCol, 0); Does not work
-    
+
     //if (!tools->isJetID( &jet )) continue;
     if (!jet.passesJetID(flashgg::JetIDLevel::Loose)) continue;
 
@@ -199,7 +317,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     //if (!jet.passesPuJetId( need Vtx here)) continue;
 
     //std::cout<<jetsCol->at(0)[j].pt()<<"  from pat = "<<jet.pt()<<std::endl;
-    
+
     if (jet.pt() > 25){
 
       TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
@@ -234,9 +352,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       }
       // END of b-jet ordering
     }
-    
+
     nJets++;
-    
+
   }
 
 
@@ -251,7 +369,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   }
   */
 
-  
+
   FHM->SetGamma1(gamma1);
   FHM->SetGamma2(gamma2);
   Float_t Mgg = (gamma1 + gamma2).M();
@@ -264,18 +382,19 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FHM->SetBJet2(bjet2);
     }
   }
-  
+
   Float_t Mbjbj = (bjet1 + bjet2).M();
 
   switch ( cutFlow_ ) {
   case 1 :
-   
+    // NCU cutflow
+
     if (myJets.size()<2) return;
     CountEvents(2, "At least two Jets w/ pT>25 (no b-tag)",ww,fcuts);
     FillHistoCounts(2, ww);
     FHM->MakeNPlots(2, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
-  
+
     if (myJets25.size()<2) return;
     CountEvents(3, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
     FillHistoCounts(3, ww);
@@ -341,11 +460,12 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
 
   case 2 :
-    
+    // Rafaels' cutflow
+
     if (gamma1.DeltaR(gamma2) < 0.4) return;
     if (gamma1.Pt() < 30 || gamma2.Pt() < 30) return;
     if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
-    
+
     CountEvents(2, "Two Photons pT>30GeV, |eta|<2.5 and dR>0.4",ww,fcuts);
     FillHistoCounts(2, ww);
     FHM->MakeMainHistos(2, ww);
@@ -362,10 +482,11 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FillHistoCounts(4, ww);
     FHM->MakeMainHistos(4, ww);
 
-  
+
     if (myJets25.size()<2) return;
     CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
     FillHistoCounts(5, ww);
+    FHM->MakeNPlots(5, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
     sort(myJets25.begin(), myJets25.end(), P4SortCondition);
 
@@ -397,11 +518,11 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
 
     break;
-   
+
   default :
     return;
   }
-  
+
 }
 
 void HHbbggAnalyzer::endJob()

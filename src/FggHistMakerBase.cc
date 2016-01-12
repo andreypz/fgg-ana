@@ -23,23 +23,23 @@ void FggHistMakerBase::MakeJetPlots(const flashgg::Jet& jet, string dir)
   hists->fill1DHist(jet.neutralEmEnergyFraction(),dir+"_jet_NEMF",
 		    ";Neutral EM Energy Fraction",  50,0,1, 1, dir);
   hists->fill1DHist(jet.chargedEmEnergyFraction(),dir+"_jet_CEMF",
-		    ";Charged EM Energy Fraction",  50,0,1, 1, dir);
+		    ";Charged EM Energy Fraction",  50,0,0.4, 1, dir);
   hists->fill1DHist(jet.muonEnergyFraction(),dir+"_jet_MUF",
-		    ";Muon Energy Fraction",  50,0,0.4, 1, dir);
+		    ";Muon Energy Fraction",  50,0,0.1, 1, dir);
 
   hists->fill1DHist(jet.hoEnergyFraction(),dir+"_jet_hoF",
-		    ";HO Energy Fraction",  50,0,1, 1, dir);
+		    ";HO Energy Fraction",  50,0,0.1, 1, dir);
   hists->fill1DHist(jet.photonEnergyFraction(),dir+"_jet_photonEnergyFraction",
 		    ";Photon Energy Fraction",  50,0,1, 1, dir);
   hists->fill1DHist(jet.electronEnergyFraction(),dir+"_jet_electronEnergyFraction",
-		    ";Electron Energy Fraction",  50,0,0.4, 1, dir);
+		    ";Electron Energy Fraction",  50,0,0.2, 1, dir);
   hists->fill1DHist(jet.chargedHadronMultiplicity(),dir+"_jet_chargedHadronMultiplicity",
-		    ";Charged Hadron Multiplicity",  40,0,20, 1, dir);
+		    ";Charged Hadron Multiplicity",  30,0,30, 1, dir);
   hists->fill1DHist(jet.neutralHadronMultiplicity(),dir+"_jet_neutralHadronMultiplicity",
-		    ";Neutral Hadron Multiplicity",  40,0,20, 1, dir);
+		    ";Neutral Hadron Multiplicity",  14,0,14, 1, dir);
 
   hists->fill1DHist(jet.chargedMultiplicity()+jet.neutralMultiplicity(),dir+"_jet_NumConst",
-		    ";Constituents",  80,0,40, 1, dir);
+		    ";Constituents",  60,0,60, 1, dir);
   hists->fill1DHist(jet.nSubjetCollections(),dir+"_jet_nSubjetCollections",
 		    ";Number of Subjet Collections",  50,-3,3, 1, dir);
   //hists->fill1DHist(jet.,dir+"_jet_",";",  50,0,20, 1, dir);
@@ -129,12 +129,16 @@ void FggHistMakerBase::MakePhotonPlots(const flashgg::Photon& ph, string dir)
   //hists->fill1DHist(ph.ConversionVeto(), dir+"ph_ConversionVeto",";ConversionVeto",  3, 0, 3,   1,dir);
   hists->fill1DHist(ph.pfPhoIso04(),       dir+"ph_PfIsoPhoton",   ";PfIsoPhoton",   100, 0.01,5, 1,dir);
   hists->fill1DHist(ph.pfChgIsoWrtChosenVtx02(), dir+"ph_PfIsoCharged",  ";PfIsoCharged",  100, 0.01,2, 1,dir);
-  //if (fabs(ph.SCEta())>1.6){ //These are only for EE
-  if (fabs(ph.eta())>1.6){ //These are only for EE
-    hists->fill1DHist(ph.esEffSigmaRR(),dir+"ph_ESEffSigmaRR_x",";ESEffSigmaRR_x",100, -5e-8,5e-8, 1,dir);
+  //if (fabs(ph.SCEta())>1.6){
+  if (ph.isEE()){ //These are only for EE
+    hists->fill1DHist(ph.esEffSigmaRR(),dir+"ph_ESEffSigmaRR_x",";ESEffSigmaRR_x",100, 0,13, 1,dir);
     //hists->fill1DHist(ph.ESEffSigmaRR()[1],dir+"ph_ESEffSigmaRR_y",";ESEffSigmaRR_y",100, -5e-8,5e-8, 1,dir);
   }
-  hists->fill1DHist(ph.photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"), dir+"ph_mvaScoreEGamma",
+
+  std::string EBEE = "None";
+  if (ph.isEB()) EBEE = "Barrel";
+  else if (ph.isEE()) EBEE = "Endcap";
+  hists->fill1DHist(ph.userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values"), dir+"ph_mvaScoreEGamma_"+EBEE,
 		    ";EGamma MVA score",     100, -1,1,   1,dir);
   //hists->fill1DHist(ph.CiCPF4chgpfIso02()[0],dir+"ph_CiCPF4chgpfIso02", ";ph_CiCPF4chgpfIso02", 100, 0,5, 1,dir);
 

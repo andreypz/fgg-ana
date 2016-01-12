@@ -51,6 +51,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   //edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
 
   UInt_t cutFlow_;
+  Bool_t useDiPhotons_;
+  edm::InputTag diPhotons_;
   UInt_t phoIDtype_;
 };
 

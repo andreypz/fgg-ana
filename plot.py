@@ -207,7 +207,7 @@ if __name__ == "__main__":
         u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, cut, "norm")
 
     # For the cases without cut number:
-    for n in ['Photon','Ele','N']:
+    for n in ['Photon','Ele','N','Leading','subLeading']:
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, None, "norm")
 

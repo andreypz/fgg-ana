@@ -34,11 +34,21 @@ process.HHbbggAnalyzer = cms.PSet(
     ## input specific for this analyzer
 
     # 1 - NCU; 2 - Rafael
-    cutFlow = cms.untracked.uint32(1),
+    cutFlow = cms.untracked.uint32(2),
 
-    # 1 - Cut Based Medium WP; 2 Cut based from PAT object; 3 - MVA ID from Egamma; 4 - Hgg MVA ID
-    phoIDtype = cms.untracked.uint32(1),
+    useDiPhotons = cms.untracked.bool(True),
+    diPhotonTag  = cms.InputTag('flashggDiPhotons'),
+    
+    # 1 - Cut Based XX WP; 2 Cut based from PAT object; 3 - MVA ID from Egamma;
+    # 4 - Hgg MVA ID; 5 - HEEP ID to be implementd
+    # (Only used if useDiPhotons==False...)
+    phoIDtype = cms.untracked.uint32(3),
 
+    phoIDcutEB=param._phoIDlooseEB,
+    phoIDcutEE=param._phoIDlooseEE,
+    #phoIDcutEB=param._phoIDmediumEB,
+    #phoIDcutEE=param._phoIDmediumEE,
+    
     lep  = cms.untracked.string('el'), # "mu" or "el"
     jetTag      = cms.InputTag('flashggFinalJets'), 
     muonTag     = cms.InputTag('flashggSelectedMuons'),
@@ -47,9 +57,6 @@ process.HHbbggAnalyzer = cms.PSet(
     genTag      = cms.InputTag('flashggPrunedGenParticles'),
     #inputTagJets= flashggTags.UnpackedJetCollectionVInputTag,
     lumiWeight = cms.double(1.),
-    phoIDcutEB=param._phoIDmediumEB,
-    phoIDcutEE=param._phoIDmediumEE,
-    
 )
 
 from flashgg.MetaData.JobConfig import customize
