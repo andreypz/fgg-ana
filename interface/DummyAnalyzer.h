@@ -26,6 +26,7 @@
 
 #include "PhysicsTools/UtilAlgos/interface/BasicAnalyzer.h"
 #include "HistManager.h"
+#include "colormod.h"
 
 #define nC 13
 
@@ -46,13 +47,13 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   virtual void FillHistoCounts(Int_t n, Double_t w);
 
   static bool P4SortCondition(const TLorentzVector& p1, const TLorentzVector& p2) {return (p1.Pt() > p2.Pt());}
-
+  
  protected:
 
   UInt_t nEvents[nC];
   UInt_t totEvents;
   UInt_t count_neg, count_pos;
-  
+
 
   Double_t nWeights[nC];
   Double_t totWeights;
@@ -75,6 +76,12 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   //TFile *outFile;
   //TFile *histoFile;
   HistManager *hists;
+
+  Color::Modifier red;
+  Color::Modifier green;
+  Color::Modifier blue;
+  Color::Modifier def;
+
 };
 
 #endif /* _DUMMY_ANA */

@@ -13,7 +13,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag")),
   phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") )
 {
-  cout<<"\t HHHHHbbbbggggg \t Constructructor in "<<__PRETTY_FUNCTION__<<endl;
+
+  cout<<red<<"\t HHHHbbbbgggg \t Constructructor in "<<__PRETTY_FUNCTION__<<def<<endl;
   FHM = new FggHistMakerHHbbgg(hists);
   tools = new bbggTools();
 

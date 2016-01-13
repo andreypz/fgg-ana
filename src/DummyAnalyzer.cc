@@ -24,7 +24,12 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   //fcuts.open("./out_cutlist.txt", ofstream::out);
   //fout.open("./out_synch_.txt",ofstream::out);
   fout.precision(3); fout.setf(ios::fixed, ios::floatfield);
-  
+  red.SetCode(Color::FG_RED);
+  green.SetCode(Color::FG_GREEN);
+  blue.SetCode(Color::FG_BLUE);
+  def.SetCode(Color::FG_DEFAULT);
+
+ 
   W0=1;
   totEvents = 0;
   totWeights = 0;
@@ -33,6 +38,9 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
     nEvents[n1]=0;
     nWeights[n1]=0;
   }
+
+  //Modifier red(FG_RED);
+  ///def(Color::FG_DEFAULT);
 
 }
 
