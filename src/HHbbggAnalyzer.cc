@@ -8,6 +8,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   //inputTagJets_(cfg.getParameter<std::vector<edm::InputTag> >( "inputTagJets" ) ),
   phoIDcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEB") ),
   phoIDcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEE") ),
+  phoISOcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoISOcutEB") ),
+  phoISOcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoISOcutEE") ),
   cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
   useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
   diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag")),
@@ -146,16 +148,27 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FHM->MakePhotonPlots(*p2, "DiPho-Sub");
 
       Bool_t passID = false;
+      Bool_t passISO = false;
       switch ( phoIDtype_ ) {
       case 1 :
         // Cut based ID from bbggTools
-        passID = (( p1->isEB() && tools->isPhoID(&(*p1), phoIDcutEB_) ) ||
-		  ( p1->isEE() && tools->isPhoID(&(*p1), phoIDcutEE_) ));
-        passID = passID &&
-	  ( ( p2->isEB() && tools->isPhoID(&(*p2), phoIDcutEB_) ) ||
-	    ( p2->isEE() && tools->isPhoID(&(*p2), phoIDcutEE_))
-	    );
+	// Leading photon:
+        passID = ( (p1->isEB() && tools->isPhoID(&(*p1), phoIDcutEB_)) ||
+		   (p1->isEE() && tools->isPhoID(&(*p1), phoIDcutEE_))
+		   );
 
+	passISO = ((p1->isEB() && tools->isPhoISO(&(*it), 0, phoISOcutEB_)) ||
+		   (p1->isEE() && tools->isPhoISO(&(*it), 0, phoISOcutEE_))
+		   );
+	// SubLeading photon:
+        passID = passID && (( p2->isEB() && tools->isPhoID(&(*p2), phoIDcutEB_)) ||
+			    ( p2->isEE() && tools->isPhoID(&(*p2), phoIDcutEE_))
+			    );
+	passISO = passISO && ((p2->isEB() && tools->isPhoISO(&(*it), 1, phoISOcutEB_)) ||
+			      (p2->isEE() && tools->isPhoISO(&(*it), 1, phoISOcutEE_))
+			      );
+
+	passID = passID && passISO;
 	break;
 
       case 2 :
@@ -193,6 +206,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       }
 
       passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
+
+      passID = passID && tools->HggHLTpreselection(&(*it));
+      
       if (!passID) continue;
 
       myDiPho.push_back(*it);
@@ -223,6 +239,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       switch ( phoIDtype_ ) {
       case 1 :
         // Cut based ID from bbggTools
+	// (Notice: there is no ISO here. It only works on diPhotons with bbggTools)
         passID = (( it->isEB() && tools->isPhoID(&(*it), phoIDcutEB_) ) ||
 		  ( it->isEE() && tools->isPhoID(&(*it), phoIDcutEE_) ));
         break;

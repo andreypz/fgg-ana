@@ -40,14 +40,19 @@ process.HHbbggAnalyzer = cms.PSet(
     diPhotonTag  = cms.InputTag('flashggDiPhotons'),
     
     # 1 - Cut Based XX WP; 2 Cut based from PAT object; 3 - MVA ID from Egamma;
-    # 4 - Hgg MVA ID; 5 - HEEP ID to be implementd
+    # 4 - Hgg MVA ID; 5 - High Pt ID to be implementd (but not sure if it's available)
     # (Only used if useDiPhotons==False...)
-    phoIDtype = cms.untracked.uint32(3),
+    phoIDtype = cms.untracked.uint32(1),
 
-    phoIDcutEB=param._phoIDlooseEB,
-    phoIDcutEE=param._phoIDlooseEE,
-    #phoIDcutEB=param._phoIDmediumEB,
-    #phoIDcutEE=param._phoIDmediumEE,
+    #phoISOcutEB=param._phoISOlooseEB,
+    #phoISOcutEE=param._phoISOlooseEE,
+    #phoIDcutEB =param._phoIDlooseEB,
+    #phoIDcutEE =param._phoIDlooseEE,
+
+    phoISOcutEB=param._phoISOmediumEB,
+    phoISOcutEE=param._phoISOmediumEE,
+    phoIDcutEB =param._phoIDmediumEB,
+    phoIDcutEE =param._phoIDmediumEE,
     
     lep  = cms.untracked.string('el'), # "mu" or "el"
     jetTag      = cms.InputTag('flashggFinalJets'), 

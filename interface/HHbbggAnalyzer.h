@@ -48,6 +48,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   //std::vector<edm::InputTag> inputTagJets_;
   std::vector<double> phoIDcutEB_;
   std::vector<double> phoIDcutEE_;
+  std::vector<double> phoISOcutEB_;
+  std::vector<double> phoISOcutEE_;
   //edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
 
   UInt_t cutFlow_;
