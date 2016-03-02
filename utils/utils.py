@@ -290,8 +290,9 @@ def makeStack(bZip, histDir, histoName, leg, lumi, howToScale, normToScale=None)
 
 def drawAllInFile(f1, name1, bZip, sZip, name3, myDir, path, N, howToScale="toDataRel", isLog=False, doRatio=False, doFits=False):
   print 'myDir is =', myDir
+  isDir = None
   if f1!=None and not f1.IsZombie():
-    f1.cd(myDir)
+    isDir = f1.cd(myDir)
   elif bZip!=None:
     print 'bzip[0]:', bZip[0]
     isDir = bZip[0][1].cd(myDir)
@@ -887,7 +888,7 @@ def makeTable(table, name, opt="tex", precision='%.2f'):
     if opt in ["twiki"]:
       print myTable
 
-def getYields(f, sample='ggH-125', doLumiScale=False):
+def getYields(f, sample='NoName sample', doLumiScale=False):
   print 'Calculating yields for ',sample
   ev   = f.Get("Counts/evt_byCut")
   sel  = conf.get("selection", "sel")[0:2]

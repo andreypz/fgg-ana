@@ -13,10 +13,15 @@ Finally, to get this code:
 
 Now, you have it compiled. Enjoy, by running:
 ```
- fggRunJobs.py --load jobs_dy-el.json -d testDir -x zgammaRun zgAna.py  maxEvents=100
+ fggRunJobs.py --load jobs-dy-el.json -d testDir -x zgammaRun zgAna.py  maxEvents=100
 ```
-where jobs_dy-el.json is the file prepared following instructions here: https://github.com/cms-analysis/flashgg/tree/master/MetaData
+where jobs-dy-el.json is the file prepared following instructions here: https://github.com/cms-analysis/flashgg/tree/master/MetaData
 
+To run over all the signal samples for HH -> bbgg analysis:
+```
+ fggRunJobs.py --load jobs-sig-hh-all.json -d HH-v7-bkg -H -D -m 0 -x hhRun hhAna.py  maxEvents=-1
+```
+(type ```fggRunJobs.py --help``` to see what all those options mean).
 
 
 ## How to create your own analyzer:
@@ -27,5 +32,4 @@ where jobs_dy-el.json is the file prepared following instructions here: https://
  fggRunJobs.py --load jobs-myAna.json -d testDir -x myAnaRun myana.py  maxEvents=100
 ```
 
-If you want to run a job without fgg scripts, first comment out the ```customize(process)``` string at the end of your myana.py file. Then run it simply with ```myAnaRun myana.py```.   
-
+If you want to run a job without fgg scripts, first comment out the ```customize(process)``` string at the end of your myana.py file. Then run it simply with ```myAnaRun myana.py```.

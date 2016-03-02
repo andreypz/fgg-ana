@@ -56,6 +56,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Bool_t useDiPhotons_;
   edm::InputTag diPhotons_;
   UInt_t phoIDtype_;
+  string runSample_;
 };
 
 

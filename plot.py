@@ -76,7 +76,7 @@ if __name__ == "__main__":
   elif 'cmslpc' in hostname:
     pathBase = "/uscms_data/d2/andreypz/html/zgamma/dalitz/"+ver+"_cut"+cut
     hPath    = "/eos/uscms/store/user/andreypz/batch_output/zgamma/8TeV/"+ver
-  elif 'pcncu' in hostname:
+  elif 'pcncu' in hostname or 'lxplus' in hostname:
     pathBase = "/afs/cern.ch/user/a/andrey/work/html/"+ver+"_cut"+cut
     hPath    = os.getcwd()+"/"+ver
 
@@ -95,14 +95,31 @@ if __name__ == "__main__":
   if doBkg:
     #bkgFiles.append(TFile(hPath+"/m_ZG_"+subsel+"_"+period+".root","OPEN"))
     #bkgNames.append('ZG')
-    bkgFiles.append(TFile(hPath+"/output_DYJetsToLL_M-50.root","OPEN"))
+    bkgFiles.append(TFile(hPath+"/output_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root","OPEN"))
     bkgNames.append('DYJets50')
 
+    bkgFiles.append(TFile(hPath+"/output_DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa.root","OPEN"))
+    bkgNames.append('DiPhotons')
+
+    bkgFiles.append(TFile(hPath+"/output_GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
+    bkgNames.append('GJets20')
+    
+    bkgFiles.append(TFile(hPath+"/output_GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root","OPEN"))
+    bkgNames.append('GJets40')
+
+    bkgFiles.append(TFile(hPath+"/output_QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
+    bkgNames.append('QCD_EM_Pt_40')
+    
+    bkgFiles.append(TFile(hPath+"/output_QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
+    bkgNames.append('QCD_EM_Pt_30to40')
+    
+    
     yields_bkg = []
     for b in xrange(len(bkgNames)):
       yields_bkg.append(u.getYields(bkgFiles[b],bkgNames[b],True))
 
     bkgZip = zip(bkgNames, bkgFiles)
+
   else: bkgZip = None
 
   sigGrav  = {}
@@ -141,10 +158,15 @@ if __name__ == "__main__":
       dataFile = TFile(hPath+"/output_DoubleMuon.root","OPEN")
     elif sel=='el':
       dataFile = TFile(hPath+"/output_DoubleEG.root","OPEN")
+    elif sel=='hhbbgg':
+      dataFile = TFile(hPath+"/output_DoubleEG.root","OPEN")
 
 
   if opt.data:
     yields_data = u.getYields(dataFile)
+    print '\t\t my data yields'
+    print yields_data
+
   if opt.sig:
     if opt.zjp: yields_zjp  = u.getYields(sigFileZjp, 'ZtoJPsiGamma',  doLumiScale)
     if opt.hjp: yields_hjp  = u.getYields(sigFileHjp, 'HtoJPsiGamma',  doLumiScale)
@@ -160,8 +182,8 @@ if __name__ == "__main__":
       yields_grav = {}
       yields_radi = {}
       for m in HHresMass:
-        yields_grav[m]   = u.getYields(sigGrav[m])
-        yields_radi[m]   = u.getYields(sigRadi[m])
+        yields_grav[m]   = u.getYields(sigGrav[m],'grav',doLumiScale)
+        yields_radi[m]   = u.getYields(sigRadi[m],'radi',doLumiScale)
 
     # print 'Total sig yi', yields_sig
 
@@ -186,8 +208,10 @@ if __name__ == "__main__":
 
   if opt.bkg:
     print
-    u.drawAllInFile(dataFile, "Data", bkgZip, None, sigName, "DY", pathBase+'/DY', cut, "lumi")
+
+    # u.drawAllInFile(dataFile, "Data", bkgZip, None, sigName, "DY", pathBase+'/DY', cut, "lumi")
     u.drawAllInFile(dataFile, "Data", bkgZip, None, sigName, "Main", pathBase+'/Main', cut, "lumi")
+
   else:
     print
     if opt.data and opt.sig:
@@ -200,20 +224,21 @@ if __name__ == "__main__":
 
   if opt.extra:
     # For the plots where cut number is set:
-    for n in ['Angles','Angles-bb','Angles-gg']:
+    if sel=='hhbbgg': dirList = ['Angles-bb','Angles-gg']
+    else: dirList = ['Angles']
+
+    for n in dirList:
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, cut, "norm")
       else:
         u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, cut, "norm")
 
     # For the cases without cut number:
-    for n in ['Photon','Ele','N','Leading','subLeading']:
+    if sel=='hhbbgg': dirList = ['N','DiPho-Lead','DiPho-Sub', 'GEN', 'bJet-Lead','bJet-Sub']
+    else: dirList = ['Photon','Ele','N', 'GEN']
+    for n in dirList:
       if opt.data:
         u.drawAllInFile(dataFile, "Data", bkgZip, None,"signal", n, pathBase+"/"+n, None, "norm")
-
-    for n in ['GEN','bJet-Lead','bJet-Sub','Photon']:
-      u.drawAllInFile(dataFile, 'Data', bkgZip, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
-      #u.drawAllInFile(None, None, None, sigZip, sigName, n, pathBase+"/"+n, None, "norm")
 
 
 
@@ -274,24 +299,33 @@ if __name__ == "__main__":
 
 
   if doBkg:
-    names = ['Data','DYJet50', 'Signal @125']
-    table_all  = u.yieldsTable([yields_data,yields_bkg[0],yields_sig], names)
-    #table_all  = u.yieldsTable([yields_data,yields_bkg,yields_sig, yields_ggH,yields_vbf, yields_vh], sel)
+    if sel=='hhbbgg':
+      names = ['DYJet50', 'DiPhoton', 'GJets20','GJets40','Grav m = 300']
+      yields_all  = [yields_bkg[0],yields_bkg[1],yields_bkg[2],yields_bkg[3], yields_grav['300']]
+    else:
+      names = ['DYJet50', 'Signal @125']
+      yields_all = [yields_bkg[0],yields_sig]
   else:
     if opt.zjp or opt.hjp:
-      names = ['Data','H to J/Psi &gamma;','Z to J/Psi &gamma;', 'ggH-125']
-      table_all = u.yieldsTable([yields_data, yields_hjp, yields_zjp, yields_ggH], names)
+      names = ['H to J/Psi &gamma;','Z to J/Psi &gamma;', 'ggH-125']
+      yields_all = [yields_hjp, yields_zjp, yields_ggH]
     #elif not opt.apz:
     elif opt.sig:
       if sel in ['mugamma','elgamma']:
-        names = ['Data','Sig: total','ggH','vbfH','VH']
-        table_all  = u.yieldsTable([yields_data,yields_sig, yields_ggH,yields_vbf, yields_vh], names)
+        names = ['Sig: total','ggH','vbfH','VH']
+        yields_all  = [yields_sig, yields_ggH,yields_vbf, yields_vh]
       elif sel=='hhbbgg':
         names = ['Grav M=%s'%m for m in HHresMass]
-        table_all  = u.yieldsTable([yields_grav[m] for m in HHresMass], names)
-
+        yields_all  = [yields_grav[m] for m in HHresMass]
     else:
-      table_all = ''
+      yields_all = None
+
+  if opt.data:
+    names[:0] = ['Data']
+    yields_all[:0] = [yields_data]
+
+  table_all  = u.yieldsTable(yields_all, names)
+
 
   if opt.hjp: precision='%.4f'
   elif sel=='hhbbgg': precision='%.0f'
@@ -304,8 +338,11 @@ if __name__ == "__main__":
 
   os.system("cat yields_all.html > yields.html")
 
-  defaultPage = 'Main-Sig'
-
-  ht.makeHTML("Z &rarr; HH &rarr; bb &gamma;&gamma; decay plots",pathBase, plot_types, comments, defaultPage)
+  if sel=='hhbbgg':
+    defaultPage = 'Main'
+    ht.makeHTML("X &rarr; HH &rarr; bb &gamma;&gamma; decay plots",pathBase, plot_types, comments, defaultPage)
+  else:
+    defaultPage = 'Main'
+    ht.makeHTML("X &rarr; HH &rarr; bb &gamma;&gamma; decay plots",pathBase, plot_types, comments, defaultPage)
 
   print "\n\t\t finita la comedia \n"

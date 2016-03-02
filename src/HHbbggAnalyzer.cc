@@ -1,7 +1,6 @@
 #include "../interface/HHbbggAnalyzer.h"
 
 //typedef std::pair<std::string,bool> IdPair;
-Bool_t doGen=0;
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
@@ -12,8 +11,9 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   phoISOcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoISOcutEE") ),
   cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
   useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
-  diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag")),
-  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") )
+  diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag") ),
+  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") ),
+  runSample_(cfg.getUntrackedParameter<string>("runSample") )
 {
 
   cout<<red<<"\t HHHHbbbbgggg \t Constructructor in "<<__PRETTY_FUNCTION__<<def<<endl;
@@ -24,6 +24,20 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
+  cout<<"\t HHHH This is "<<green<<runSample_<<def<<" sample"<<endl;
+  if (runSample_=="DYJets")
+    W0 = 17000;
+  else if (runSample_=="QCD")
+    W0=1;
+ else if (runSample_=="GJets")
+    W0=1;
+  else if (runSample_=="DiPhoton")
+    W0=0.5;
+  else if (runSample_=="Graviton")
+    W0=10000;
+  else if (runSample_=="Radion")
+    W0=10000;
+  else W0=1;
 }
 
 void HHbbggAnalyzer::beginJob()
@@ -44,9 +58,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     edm::Handle<GenEventInfoProduct> genEvtInfo;
     event.getByLabel(edm::InputTag("generator"), genEvtInfo );
     ww = genEvtInfo->weight();
-    if (totEvents==0)  W0 = fabs(ww); // This is the Etalon!
-
-    if (fabs(ww)!=W0) throw cms::Exception("ETALON","The weights are not the same. Can not deal with this... ww=")<<ww<<"  W0="<<W0;
+    
+    //if (totEvents==0)  W0 = fabs(ww); // This is the Etalon!
+    //if (fabs(ww)!=W0) throw cms::Exception("ETALON","The weights are not the same. Can not deal with this... ww=")<<ww<<"  W0="<<W0;
 
     ww/=W0; //Divide by the etalon, get +/-1
   }
@@ -68,21 +82,24 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   FHM->Reset(rhoFixedGrd, 1, eventNumber);
   tools->setRho(rhoFixedGrd);
 
-  if (!isRealData && doGen) {
+  std::vector<TLorentzVector> gen_photons, gen_jets;
+  //TLorentzVector gen_gamma1, gen_gamma2;
+
+  if (!isRealData) {
     //&& sdample = signal...
 
     edm::Handle<vector<reco::GenParticle> > genParts;
     event.getByLabel( myGen_, genParts );
 
-    std::vector<TLorentzVector> gen_photons, gen_jets;
-    TLorentzVector gen_gamma1, gen_gamma2;
     //TLorentzVector gen_bjet1, gen_bjet2;
     TLorentzVector gen_bQ1, gen_bQ2;
     TLorentzVector tmp;
 
+    
     for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
 
-      if (abs(igen->pdgId())==5 && igen->mother()->pdgId()==25) {
+      
+      if (abs(igen->pdgId())==5 && igen->mother() && igen->mother()->pdgId()==25) {
 
 	//std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t BBB Found b-quark from Higgs! BBB  Its status = "<<igen->status()
 	//<<" Its charge = "<<igen->charge()<<std::endl;
@@ -92,15 +109,22 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	if (igen->pdgId()==-5)
 	  gen_bQ2 = tmp;
       }
-
-      if (igen->pdgId()==22 && igen->isPromptFinalState()) {
+      
+      
+      //if (igen->pdgId()==22)
+      //std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t Found a photon. Its status = "<<igen->status()
+      //<<" isPrompt = "<<igen->isPrompt()
+      //       <<" isPrompt FS = "<<igen->isPromptFinalState()
+      //       <<" from HP FS = "<<igen->fromHardProcessFinalState()<<std::endl;
+      if (igen->pdgId()==22) {
+	//if (igen->pdgId()==22 && igen->isPromptFinalState()) {
 	tmp.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
 	gen_photons.push_back(tmp);
 
       }
 
     }
-
+    
     /*
     sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
 
@@ -198,7 +222,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
         break;
 
       case 5 :
-	// HEEP ID: TBD
+	// High Pt ID: TBD
         break;
 
       default : break;
@@ -207,18 +231,12 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
 
-      passID = passID && tools->HggHLTpreselection(&(*it));
+      //passID = passID && tools->HggHLTpreselection(&(*it));
       
       if (!passID) continue;
 
       myDiPho.push_back(*it);
 
-      /* there is probably double-counting going on here. need to check
-	 TLorentzVector tmp = TLorentzVector(p1->px(), p1->py(), p1->pz(), p1->energy());
-	 myPhotons.push_back(tmp);
-	 tmp = TLorentzVector(p2->px(), p2->py(), p2->pz(), p2->energy());
-	 myPhotons.push_back(tmp);
-      */
     }
   }
   else { // Use regular photons
@@ -279,6 +297,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       if (!passID) continue;
 
       myPhotons.push_back(tmp);
+
     }
   }
 
@@ -304,6 +323,27 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   CountEvents(1, "Two Photons reconstructed",ww,fcuts);
   FillHistoCounts(1, ww);
 
+
+  // Removing double counting photons from the bkg MC samples
+  Bool_t isPrompt1=false, isPrompt2=false;
+
+  for (size_t g = 0;  g<gen_photons.size(); g++)
+    {
+      Float_t dR1 = gamma1.DeltaR(gen_photons[g]);
+      Float_t dR2 = gamma2.DeltaR(gen_photons[g]);
+      hists->fill1DHist(dR1, "GEN_dR1_gamma-prompt",
+			";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");                         
+      hists->fill1DHist(dR2, "GEN_dR2_gamma-prompt",
+			";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");                         
+      
+      if (dR1 < 0.3) isPrompt1 = 1;
+      if (dR2 < 0.3) isPrompt2 = 1;
+    }
+  
+  CountEvents(2, " .. Reserved ..",ww,fcuts);
+  FillHistoCounts(2, ww);
+
+  // Finished with double-counting removal
 
   //edm::Handle<reco::GenJetCollection> genJets;
   //event.getByLabel(edm::InputTag("slimmedGenJets"), genJets);
@@ -349,7 +389,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       //
       // Order the Jets by the b-discriminator value:
       //
-      //Only kep the b-tagged jets:
+      //Only keep the b-tagged jets:
       if (jet.bDiscriminator(bTag) < 0) continue;
       // Begin with putting the first jet in the array
       if (bJets.size()==0){
@@ -467,12 +507,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeNPlots(9, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
 
-    if ( Mbjbj < 60 || Mbjbj > 180) return;
-
-    CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
-    FillHistoCounts(10, ww);
-    FHM->MakeMainHistos(10, ww);
-
+    if ( Mbjbj < 60 || Mbjbj > 180) return;    
+    CountEvents(11, "60 < m(jj) < 180 GeV",ww,fcuts);
+    FillHistoCounts(11, ww);
+    FHM->MakeMainHistos(11, ww);
 
     break;
 
@@ -484,35 +522,35 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     if (gamma1.Pt() < 30 || gamma2.Pt() < 30) return;
     if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
 
-    CountEvents(2, "Two Photons pT>30GeV, |eta|<2.5 and dR>0.4",ww,fcuts);
-    FillHistoCounts(2, ww);
-    FHM->MakeMainHistos(2, ww);
-
-
-    if ( gamma1.Pt() < Mgg/3 || gamma2.Pt() < Mgg/4) return;
-    CountEvents(3, "pT(g1)/m(gg) > 1/3  and pT(g2)/m(gg) > 1/4",ww,fcuts);
+    CountEvents(3, "Two Photons pT>30GeV, |eta|<2.5 and dR>0.4",ww,fcuts);
     FillHistoCounts(3, ww);
     FHM->MakeMainHistos(3, ww);
 
 
-    if ( Mgg < 100 || Mgg > 180) return;
-    CountEvents(4, "100 < m(gg) < 180 GeV",ww,fcuts);
+    if ( gamma1.Pt() < Mgg/3 || gamma2.Pt() < Mgg/4) return;
+    CountEvents(4, "pT(g1)/m(gg) > 1/3  and pT(g2)/m(gg) > 1/4",ww,fcuts);
     FillHistoCounts(4, ww);
     FHM->MakeMainHistos(4, ww);
 
 
-    if (myJets25.size()<2) return;
-    CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    if ( Mgg < 100 || Mgg > 180) return;
+    CountEvents(5, "100 < m(gg) < 180 GeV",ww,fcuts);
     FillHistoCounts(5, ww);
-    FHM->MakeNPlots(5, myPhotons.size(), myJets.size(), bJets.size(), ww);
+    FHM->MakeMainHistos(5, ww);
+
+
+    if (myJets25.size()<2) return;
+    CountEvents(6, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(6, ww);
+    FHM->MakeNPlots(6, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
     sort(myJets25.begin(), myJets25.end(), P4SortCondition);
 
     if (bJets.size()<2) return;
 
-    CountEvents(6, "Two jets with bDissc > 0",ww,fcuts);
-    FillHistoCounts(6, ww);
-    FHM->MakeMainHistos(6, ww);
+    CountEvents(7, "Two jets with bDissc > 0",ww,fcuts);
+    FillHistoCounts(7, ww);
+    FHM->MakeMainHistos(7, ww);
 
 
     FHM->MakeJetPlots(bJets[0], "bJet-Lead");
@@ -521,18 +559,27 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     if (bjet1.Pt() < 25 || bjet2.Pt() < 25) return;
     if (fabs(bjet1.Eta()) > 2.5 || fabs(bjet2.Eta()) > 2.5) return;
 
-    CountEvents(7, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
-    FillHistoCounts(7, ww);
-    FHM->MakeMainHistos(7, ww);
+    CountEvents(8, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(8, ww);
+    FHM->MakeMainHistos(8, ww);
 
     FHM->MakeNPlots(7, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
 
+    if (runSample_=="DiPhoton"   && !(isPrompt1 & isPrompt2)) return;
+    else if (runSample_=="GJets" && !(isPrompt1 ^ isPrompt2)) return;
+    else if (runSample_=="QCD"   &&  (isPrompt1 & isPrompt2)) return;
+    
+    CountEvents(9, "After double counting removal",ww,fcuts);
+    FillHistoCounts(9, ww);
+    FHM->MakeMainHistos(9, ww);
+    
+
     if ( Mbjbj < 60 || Mbjbj > 180) return;
 
-    CountEvents(8, "60 < m(jj) < 180 GeV",ww,fcuts);
-    FillHistoCounts(8, ww);
-    FHM->MakeMainHistos(8, ww);
+    CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
+    FillHistoCounts(10, ww);
+    FHM->MakeMainHistos(10, ww);
 
 
     break;

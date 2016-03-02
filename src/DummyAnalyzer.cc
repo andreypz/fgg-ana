@@ -46,7 +46,7 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
 
 void DummyAnalyzer::beginJob()
 {
-  cout<<"\t DDDDD \t Dummy is Beginning the job."<<endl;
+  //cout<<"\t DDDDD \t Dummy is Beginning the job."<<endl;
 }
 
 
@@ -80,9 +80,9 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
 
   cout<<" ** YIELDS **"<<endl;
   cout<<"n |"<<setw(45)<<" CUT DESCRIPTION \t\t|"<<" events \t"<< "Weight sum |"<<" Tot eff |"<<" cut eff |"<<endl;
-  for (Int_t n=0; n<nC; n++){
+  for (UInt_t n=0; n<nC; n++){
     if (n==0)
-      cout<<  "0 |"<<setw(45)<<allCuts[0]<<"\t |"<<setw(8)<< nEvents[0]<<"|"<<setw(8)<<ULong64_t(nWeights[0])<<"|"
+      cout<<  "0 |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[0]<<"|"<<setw(8)<<ULong64_t(nWeights[0])<<"|"
 	  <<setw(5)<<std::fixed<<std::setprecision(3)<<1.0<<"|"<<1.0<<"|"<<endl;
     else
       cout<<n<<" |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[n]<<"|"<<setw(8)<<ULong64_t(nWeights[n])<<"|"
@@ -135,7 +135,7 @@ std::string DummyAnalyzer::open_temp(std::string path, std::string nm, std::ofst
 	   std::ios_base::trunc | std::ios_base::out);
     close(fd);
 
-    cout<<"\t DDDD Open temp OK.  Path="<<path<<endl;
+    //cout<<"\t DDDD Open temp OK.  Path="<<path<<endl;
   }
 
   return path;
