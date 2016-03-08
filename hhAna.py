@@ -66,8 +66,8 @@ else: sample='Nonono'
 process.HHbbggAnalyzer = cms.PSet(
     ## input specific for this analyzer
 
-    # 1 - NCU; 2 - Rafael
-    cutFlow = cms.untracked.uint32(2),
+    # 1 - Default; 2 - Alternative
+    cutFlow = cms.untracked.uint32(1),
     useDiPhotons = cms.untracked.bool(True),
     diPhotonTag  = cms.InputTag('flashggDiPhotons'),
 
@@ -85,6 +85,13 @@ process.HHbbggAnalyzer = cms.PSet(
     phoISOcutEE=param._phoISOmediumEE,
     phoIDcutEB =param._phoIDmediumEB,
     phoIDcutEE =param._phoIDmediumEE,
+
+    # In the future replace this with param._myTriggers from bbggtools:
+    myTriggers=cms.untracked.vstring(
+        "HLT_Diphoton30_18_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass95_v",
+        "HLT_Diphoton30PV_18PV_R9Id_AND_IsoCaloId_AND_HE_R9Id_DoublePixelVeto_Mass55_v",
+        "HLT_Diphoton30EB_18EB_R9Id_OR_IsoCaloId_AND_HE_R9Id_DoublePixelVeto_Mass55_v"
+        ),
 
     lep  = cms.untracked.string('el'), # "mu" or "el"
     jetTag      = cms.InputTag('flashggFinalJets'),

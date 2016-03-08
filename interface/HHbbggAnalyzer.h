@@ -46,6 +46,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   edm::InputTag rhoFixedGrid_;
   // ORDER MATTERS:
   //std::vector<edm::InputTag> inputTagJets_;
+  std::vector<std::string> myTriggers_;
   std::vector<double> phoIDcutEB_;
   std::vector<double> phoIDcutEE_;
   std::vector<double> phoISOcutEB_;
@@ -56,7 +57,6 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Bool_t useDiPhotons_;
   edm::InputTag diPhotons_;
   UInt_t phoIDtype_;
-  string runSample_;
 };
 
 

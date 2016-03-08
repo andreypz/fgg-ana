@@ -66,6 +66,7 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
 
   edm::InputTag muons_, electrons_, photons_, jets_;
   edm::InputTag myGen_;
+  string runSample_;
 
   //edm::EDGetTokenT<std::vector<reco::Muon> > muonsToken_;
 

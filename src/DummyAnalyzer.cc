@@ -11,7 +11,8 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   electrons_(cfg.getParameter<edm::InputTag>("electronTag")),
   photons_(cfg.getParameter<edm::InputTag>("photonTag")),
   jets_(cfg.getParameter<edm::InputTag>("jetTag")),
-  myGen_( cfg.getParameter<edm::InputTag>( "genTag" ) )
+  myGen_( cfg.getParameter<edm::InputTag>( "genTag" ) ),
+  runSample_(cfg.getUntrackedParameter<string>("runSample") )
 {
   cout<<"\t DDDDD \t Dummy is constructing you..."<<endl;
   // This is an exmple of how to use TFileService histograms:
@@ -78,14 +79,34 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
   }
 
 
+  cout<<"\t This is "<<green<<runSample_<<def<<" sample"<<endl;
+
+  // Here set the scale factor for the gen weight in order to match the weighted event to a simple sum
+  // This is only for visualization (yield table below)
+  if (runSample_=="DYJets")
+    W0 = 17000;
+  else if (runSample_=="QCD")
+    W0=1;
+ else if (runSample_=="GJets")
+    W0=1;
+  else if (runSample_=="DiPhoton")
+    W0=0.5;
+  else if (runSample_=="Graviton")
+    W0=1;
+  else if (runSample_=="Radion")
+    W0=1;
+  else W0=1;
+
+
+  
   cout<<" ** YIELDS **"<<endl;
   cout<<"n |"<<setw(45)<<" CUT DESCRIPTION \t\t|"<<" events \t"<< "Weight sum |"<<" Tot eff |"<<" cut eff |"<<endl;
   for (UInt_t n=0; n<nC; n++){
     if (n==0)
-      cout<<  "0 |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[0]<<"|"<<setw(8)<<ULong64_t(nWeights[0])<<"|"
+      cout<<  "0 |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[0]<<"|"<<setw(8)<<ULong64_t(nWeights[0]/W0)<<"|"
 	  <<setw(5)<<std::fixed<<std::setprecision(3)<<1.0<<"|"<<1.0<<"|"<<endl;
     else
-      cout<<n<<" |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[n]<<"|"<<setw(8)<<ULong64_t(nWeights[n])<<"|"
+      cout<<n<<" |"<<setw(45)<<allCuts[n]<<"\t |"<<setw(8)<< nEvents[n]<<"|"<<setw(8)<<ULong64_t(nWeights[n]/W0)<<"|"
 	  <<setw(5)<<std::fixed<<std::setprecision(3)<<float(nWeights[n])/nWeights[effBase]<<"|"<<float(nWeights[n])/nWeights[n-1]<<"|"<<endl;
   }
 

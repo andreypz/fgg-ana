@@ -1,0 +1,29 @@
+{
+    "processes" : {
+        "DYJetsToLL_M-50" : [
+	    ["/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8", {"args" : ["maxEvents=-1"], "njobs":30}]
+	],
+
+	"GJets" : [
+            ["/GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8",{"args" : ["maxEvents=-1"], "njobs":40}],
+            ["/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8",{"args" : ["maxEvents=-1"], "njobs":40}]
+	],
+
+	"QCD": [
+	    ["/QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8", {"args" : ["maxEvents=-1"], "njobs":40}],
+	    ["/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8", {"args" : ["maxEvents=-1"], "njobs":20}]
+	],
+
+	"DiPhotonJetsBox": [
+	    ["/DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa",{"args" : ["maxEvents=-1"], "njobs":20}]
+	],
+
+	"DoubleEG" : [
+	    ["/DoubleEG/sethzenz-RunIISpring15-ReMiniAOD-BetaV7-25ns-Spring15BetaV7-v0-Run2015C_25ns-05Oct2015-v1-abb8a7e501c7a3475a3187a9efa3732c/USER",	{"args" : ["maxEvents=-1"], "njobs":10} ],
+	    ["/DoubleEG/sethzenz-RunIISpring15-ReMiniAOD-BetaV7-25ns-Spring15BetaV7-v0-Run2015D-05Oct2015-v1-6b8747da98d6c398d92ed9fbd80184bb/USER",            {"args" : ["maxEvents=-1"], "njobs":15} ]
+
+	]
+    },
+
+    "cmdLine" : "campaign=RunIISpring15-ReMiniAOD-BetaV7-25ns targetLumi=1e+3"
+}

@@ -1,9 +1,14 @@
 #include "../interface/HHbbggAnalyzer.h"
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/Math/interface/deltaR.h"
+
 
 //typedef std::pair<std::string,bool> IdPair;
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
+  myTriggers_(cfg.getUntrackedParameter<std::vector<std::string> >("myTriggers")),
   //inputTagJets_(cfg.getParameter<std::vector<edm::InputTag> >( "inputTagJets" ) ),
   phoIDcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEB") ),
   phoIDcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEE") ),
@@ -12,8 +17,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
   useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
   diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag") ),
-  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") ),
-  runSample_(cfg.getUntrackedParameter<string>("runSample") )
+  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") )
 {
 
   cout<<red<<"\t HHHHbbbbgggg \t Constructructor in "<<__PRETTY_FUNCTION__<<def<<endl;
@@ -24,20 +28,6 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
-  cout<<"\t HHHH This is "<<green<<runSample_<<def<<" sample"<<endl;
-  if (runSample_=="DYJets")
-    W0 = 17000;
-  else if (runSample_=="QCD")
-    W0=1;
- else if (runSample_=="GJets")
-    W0=1;
-  else if (runSample_=="DiPhoton")
-    W0=0.5;
-  else if (runSample_=="Graviton")
-    W0=10000;
-  else if (runSample_=="Radion")
-    W0=10000;
-  else W0=1;
 }
 
 void HHbbggAnalyzer::beginJob()
@@ -58,11 +48,11 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     edm::Handle<GenEventInfoProduct> genEvtInfo;
     event.getByLabel(edm::InputTag("generator"), genEvtInfo );
     ww = genEvtInfo->weight();
-    
+
     //if (totEvents==0)  W0 = fabs(ww); // This is the Etalon!
     //if (fabs(ww)!=W0) throw cms::Exception("ETALON","The weights are not the same. Can not deal with this... ww=")<<ww<<"  W0="<<W0;
 
-    ww/=W0; //Divide by the etalon, get +/-1
+    //ww/=W0; //Divide by the etalon, get +/-1
   }
 
   if (ww<0) count_neg++;
@@ -95,10 +85,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     TLorentzVector gen_bQ1, gen_bQ2;
     TLorentzVector tmp;
 
-    
+
     for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
 
-      
+
       if (abs(igen->pdgId())==5 && igen->mother() && igen->mother()->pdgId()==25) {
 
 	//std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t BBB Found b-quark from Higgs! BBB  Its status = "<<igen->status()
@@ -109,13 +99,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	if (igen->pdgId()==-5)
 	  gen_bQ2 = tmp;
       }
-      
-      
+
+
       //if (igen->pdgId()==22)
       //std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t Found a photon. Its status = "<<igen->status()
       //<<" isPrompt = "<<igen->isPrompt()
-      //       <<" isPrompt FS = "<<igen->isPromptFinalState()
-      //       <<" from HP FS = "<<igen->fromHardProcessFinalState()<<std::endl;
+      //<<" isPrompt FS = "<<igen->isPromptFinalState()
+      //<<" from HP FS = "<<igen->fromHardProcessFinalState()<<std::endl;
       if (igen->pdgId()==22) {
 	//if (igen->pdgId()==22 && igen->isPromptFinalState()) {
 	tmp.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
@@ -124,7 +114,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       }
 
     }
-    
+
     /*
     sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
 
@@ -159,6 +149,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   // This is to store the selected di-photons:
   std::vector<flashgg::DiPhotonCandidate> myDiPho;
 
+  Bool_t kinema = false;
   if (useDiPhotons_) {
     for(std::vector<flashgg::DiPhotonCandidate>::const_iterator it=diPhotons->begin(); it!=diPhotons->end(); ++it){
 
@@ -166,7 +157,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       p1 = it->leadingPhoton();
       p2 = it->subLeadingPhoton();
 
-      if (p2->pt() < 15) continue;
+      Float_t tmp_mgg = it->mass();
+      if (p1->pt() > tmp_mgg/3 && p2->pt() > tmp_mgg/4 &&
+	  tmp_mgg > 100 && tmp_mgg < 180 &&
+	  deltaR(*p1,*p2) > 0.4)
+	kinema = true;
+      else continue;
+	//if (p2->pt() < 15) continue;
 
       FHM->MakePhotonPlots(*p1, "DiPho-Lead");
       FHM->MakePhotonPlots(*p2, "DiPho-Sub");
@@ -197,6 +194,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       case 2 :
 	// Cut based ID stored in AOD/PAT/fgg
+	// Warning: it is for 50ns! Need to switch to 25ns, once available
         passID = (p1->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium") &&
 		  p2->photonID("cutBasedPhotonID-Spring15-50ns-V1-standalone-medium"));
         break;
@@ -205,11 +203,16 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	// EGamma MVA ID stored in the PAT object
 
 	// Cut on the value
-	//passID = (( it->isEB() && it->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values") > 0.374 ) ||
-	//        ( it->isEE() && it->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values") > 0.336 ));
+	passID = (( p1->isEB() && p1->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.374 ) ||
+		  ( p1->isEE() && p1->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.472 )); // Def: 0.336
+
+	passID = (passID &&
+		  (( p2->isEB() && p2->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.374 ) ||
+		   ( p2->isEE() && p2->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.472 )));
+
 	// Use the boolean
-	passID = (p1->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90") &&
-		  p2->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2-wp90"));
+	//passID = (p1->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2p1-wp90") &&
+	//	  p2->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2p1-wp90"));
 	break;
 
       case 4 :
@@ -232,7 +235,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
 
       //passID = passID && tools->HggHLTpreselection(&(*it));
-      
+
       if (!passID) continue;
 
       myDiPho.push_back(*it);
@@ -302,71 +305,120 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   }
 
 
-  TLorentzVector gamma1, gamma2;
+  if (diPhotons->size()<1) return;
 
+  CountEvents(1, "Di-Photon exists",ww,fcuts);
+  FillHistoCounts(1, ww);
+
+  // ---------
+  // TRIGGER
+  //---------
+
+  std::vector<int> myTriggerResults;
+  if(myTriggers_.size() > 0){
+    edm::Handle<edm::TriggerResults> trigResults;
+    event.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), trigResults);
+    const edm::TriggerNames &names = event.triggerNames(*trigResults);
+
+    bool accepted = 0;
+    for(unsigned int j = 0; j < myTriggers_.size(); j++){
+      for ( unsigned int i = 0; i < trigResults->size(); i++){
+	if((names.triggerName(i)).find(myTriggers_[j]) != std::string::npos ){
+	  if(trigResults->accept(i) == 1){
+	    accepted = 1;
+	    break;
+	  }
+	}
+      }
+    }
+
+    if(!accepted) return;
+  }
+  
+  CountEvents(2, "HLT di-photon Triggers",ww,fcuts);
+  FillHistoCounts(2, ww);
+
+
+  if (!kinema) return;
+  CountEvents(3, "Kin selection of di-photon",ww,fcuts);
+  FillHistoCounts(3, ww);
+
+
+  // -----------
+  // SET PHOTONS
+  //------------
+  
+  TLorentzVector gamma1, gamma2;
+  // Bools for removing double counting photons from the bkg MC samples
+  Bool_t isPrompt1=false, isPrompt2=false;
+  
   if (useDiPhotons_){
     if (myDiPho.size()<1) return;
+    
+    CountEvents(4, "Photons pass ID",ww,fcuts);
+    FillHistoCounts(4, ww);
+    
+    
     const flashgg::Photon *p1, *p2;
     p1 = myDiPho[0].leadingPhoton();
     p2 = myDiPho[0].subLeadingPhoton();
     gamma1 = TLorentzVector(p1->px(), p1->py(), p1->pz(), p1->energy());
     gamma2 = TLorentzVector(p2->px(), p2->py(), p2->pz(), p2->energy());
+    
+    
+    if (p1->genMatchType()==1) isPrompt1=1;
+    if (p2->genMatchType()==1) isPrompt2=1;
+    
+    /* //checks and printouts
+       if (runSample_=="DiPhoton" && (p1->genMatchType()!=1 || p2->genMatchType()!=1))
+       {
+       cout<<"\t lead pho match type = "<<p1->genMatchType()<<endl;
+       cout<<"\t sub pho match type = "<<p2->genMatchType()<<endl;
+       }
+       
+       if (runSample_=="GJets" && (p1->genMatchType()==1 && p2->genMatchType()==1))
+       {
+       cout<<"\t lead pho match type = "<<p1->genMatchType()<<endl;
+       cout<<"\t sub pho match type = "<<p2->genMatchType()<<endl;
+       }
+    */
   }
   else{
-
+      
     sort(myPhotons.begin(), myPhotons.end(), P4SortCondition);
     if (myPhotons.size()<2) return;
     gamma1 = myPhotons[0];
     gamma2 = myPhotons[1];
   }
-
-  CountEvents(1, "Two Photons reconstructed",ww,fcuts);
-  FillHistoCounts(1, ww);
-
-
-  // Removing double counting photons from the bkg MC samples
-  Bool_t isPrompt1=false, isPrompt2=false;
-
-  for (size_t g = 0;  g<gen_photons.size(); g++)
-    {
-      Float_t dR1 = gamma1.DeltaR(gen_photons[g]);
-      Float_t dR2 = gamma2.DeltaR(gen_photons[g]);
-      hists->fill1DHist(dR1, "GEN_dR1_gamma-prompt",
-			";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");                         
-      hists->fill1DHist(dR2, "GEN_dR2_gamma-prompt",
-			";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");                         
-      
-      if (dR1 < 0.3) isPrompt1 = 1;
-      if (dR2 < 0.3) isPrompt2 = 1;
-    }
   
-  CountEvents(2, " .. Reserved ..",ww,fcuts);
-  FillHistoCounts(2, ww);
 
-  // Finished with double-counting removal
-
+  // ---------
+  //  JETS
+  // --------
+  
   //edm::Handle<reco::GenJetCollection> genJets;
   //event.getByLabel(edm::InputTag("slimmedGenJets"), genJets);
-
+  
   vector<TLorentzVector> myJets, myJets25;
   vector<flashgg::Jet> bJets;
   TLorentzVector bjet1, bjet2;
-
-
+  
   edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCol;
   event.getByLabel(jets_, jetsCol);
-
+  
   if (jetsCol->size()<1) return;
-
+  
   UInt_t nJets=0;
   for(UInt_t j = 0 ; j < jetsCol->at( 0 ).size() ; j++ ) {
+    nJets++;
+    
     flashgg::Jet jet = jetsCol->at(0)[j];
-
+    
     //edm::Ptr<flashgg::Jet> jet(jetsCol, 0); Does not work
-
+    
     //if (!tools->isJetID( &jet )) continue;
     if (!jet.passesJetID(flashgg::JetIDLevel::Loose)) continue;
-
+    
     //std::cout<<j<<" Pass jet ID. Pt="<<jet.pt()<<std::endl;
     //std::cout<<j<<" Does not Pass jet ID. Pt="<<jet.pt()<<std::endl;
 
@@ -390,12 +442,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       // Order the Jets by the b-discriminator value:
       //
       //Only keep the b-tagged jets:
-      if (jet.bDiscriminator(bTag) < 0) continue;
+      if (jet.bDiscriminator(bTag) < -1) continue;
       // Begin with putting the first jet in the array
       if (bJets.size()==0){
 	bJets.push_back(jet);
 	continue;
       }
+      
       // Now loop over all and order them by b-tag discriminator
       for (std::vector<flashgg::Jet>::const_iterator b = bJets.begin(); b!= bJets.end(); b++) {
 	auto nx = std::next(b);
@@ -410,8 +463,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       }
       // END of b-jet ordering
     }
-
-    nJets++;
 
   }
 
@@ -445,9 +496,94 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
   switch ( cutFlow_ ) {
   case 1 :
-    // NCU cutflow
+    // Default cutflow, for sync and final numbers
+        
+    
+    /* //Double-counting removal on dR matching
+       // Does not work since gen_photons are not prompt (isPromptFinalState method don't work)
+      for (size_t g = 0;  g<gen_photons.size(); g++)
+      {
+      Float_t dR1 = gamma1.DeltaR(gen_photons[g]);
+      Float_t dR2 = gamma2.DeltaR(gen_photons[g]);
+      hists->fill1DHist(dR1, "GEN_dR1_gamma-prompt",
+      ";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");
+      hists->fill1DHist(dR2, "GEN_dR2_gamma-prompt",
+      ";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");
+      
+      if (dR1 < 0.3) isPrompt1 = 1;
+      if (dR2 < 0.3) isPrompt2 = 1;
+      }
+    */
+    // Finished with double-counting removal
+    
+    
+    //if (gamma1.DeltaR(gamma2) < 0.4) return;
+    //if (gamma1.Pt() < 30 || gamma2.Pt() < 30) return;
+    //if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
 
-    if (myJets.size()<2) return;
+
+    CountEvents(5, " .. Reserve ..",ww,fcuts);
+    FillHistoCounts(5, ww);
+    FHM->MakeMainHistos(5, ww);
+
+
+    if (myJets25.size()<2) return;
+    CountEvents(6, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(6, ww);
+    FHM->MakeNPlots(6, myPhotons.size(), myJets.size(), bJets.size(), ww);
+
+    sort(myJets25.begin(), myJets25.end(), P4SortCondition);
+
+    if (bJets.size()<2) return;
+
+    CountEvents(7, "Two jets with bDissc > -1",ww,fcuts);
+    FillHistoCounts(7, ww);
+    FHM->MakeMainHistos(7, ww);
+
+
+    FHM->MakeJetPlots(bJets[0], "bJet-Lead");
+    FHM->MakeJetPlots(bJets[1], "bJet-Sub");
+
+    if (bjet1.Pt() < 25 || bjet2.Pt() < 25) return;
+    if (fabs(bjet1.Eta()) > 2.5 || fabs(bjet2.Eta()) > 2.5) return;
+
+    CountEvents(8, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(8, ww);
+    FHM->MakeMainHistos(8, ww);
+
+    FHM->MakeNPlots(8, myPhotons.size(), myJets.size(), bJets.size(), ww);
+
+
+    if (runSample_=="DiPhoton"   && !(isPrompt1 & isPrompt2)) return;
+    else if (runSample_=="GJets" && !(isPrompt1 ^ isPrompt2)) return;
+    else if (runSample_=="QCD"   &&  (isPrompt1 & isPrompt2)) return;
+
+    CountEvents(9, "After double counting removal",ww,fcuts);
+    FillHistoCounts(9, ww);
+    FHM->MakeMainHistos(9, ww);
+
+
+    if ( Mbjbj < 60 || Mbjbj > 180) return;
+
+    CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
+    FillHistoCounts(10, ww);
+    FHM->MakeMainHistos(10, ww);
+
+
+
+    if (bJets[0].bDiscriminator(bTag) < 0.8) return;
+    
+    CountEvents(11, "b-tag > 0.8",ww,fcuts);
+    FillHistoCounts(11, ww);
+    FHM->MakeMainHistos(11, ww);
+
+
+    break;
+
+  case 2 :
+    // Alternative  cutflow for checks and stuff
+
+    if (myJets25.size()<2) return;
     CountEvents(2, "At least two Jets w/ pT>25 (no b-tag)",ww,fcuts);
     FillHistoCounts(2, ww);
     FHM->MakeNPlots(2, myPhotons.size(), myJets.size(), bJets.size(), ww);
@@ -507,82 +643,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeNPlots(9, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
 
-    if ( Mbjbj < 60 || Mbjbj > 180) return;    
+    if ( Mbjbj < 60 || Mbjbj > 180) return;
     CountEvents(11, "60 < m(jj) < 180 GeV",ww,fcuts);
     FillHistoCounts(11, ww);
     FHM->MakeMainHistos(11, ww);
 
     break;
 
-
-  case 2 :
-    // Rafaels' cutflow
-
-    if (gamma1.DeltaR(gamma2) < 0.4) return;
-    if (gamma1.Pt() < 30 || gamma2.Pt() < 30) return;
-    if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
-
-    CountEvents(3, "Two Photons pT>30GeV, |eta|<2.5 and dR>0.4",ww,fcuts);
-    FillHistoCounts(3, ww);
-    FHM->MakeMainHistos(3, ww);
-
-
-    if ( gamma1.Pt() < Mgg/3 || gamma2.Pt() < Mgg/4) return;
-    CountEvents(4, "pT(g1)/m(gg) > 1/3  and pT(g2)/m(gg) > 1/4",ww,fcuts);
-    FillHistoCounts(4, ww);
-    FHM->MakeMainHistos(4, ww);
-
-
-    if ( Mgg < 100 || Mgg > 180) return;
-    CountEvents(5, "100 < m(gg) < 180 GeV",ww,fcuts);
-    FillHistoCounts(5, ww);
-    FHM->MakeMainHistos(5, ww);
-
-
-    if (myJets25.size()<2) return;
-    CountEvents(6, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
-    FillHistoCounts(6, ww);
-    FHM->MakeNPlots(6, myPhotons.size(), myJets.size(), bJets.size(), ww);
-
-    sort(myJets25.begin(), myJets25.end(), P4SortCondition);
-
-    if (bJets.size()<2) return;
-
-    CountEvents(7, "Two jets with bDissc > 0",ww,fcuts);
-    FillHistoCounts(7, ww);
-    FHM->MakeMainHistos(7, ww);
-
-
-    FHM->MakeJetPlots(bJets[0], "bJet-Lead");
-    FHM->MakeJetPlots(bJets[1], "bJet-Sub");
-
-    if (bjet1.Pt() < 25 || bjet2.Pt() < 25) return;
-    if (fabs(bjet1.Eta()) > 2.5 || fabs(bjet2.Eta()) > 2.5) return;
-
-    CountEvents(8, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
-    FillHistoCounts(8, ww);
-    FHM->MakeMainHistos(8, ww);
-
-    FHM->MakeNPlots(7, myPhotons.size(), myJets.size(), bJets.size(), ww);
-
-
-    if (runSample_=="DiPhoton"   && !(isPrompt1 & isPrompt2)) return;
-    else if (runSample_=="GJets" && !(isPrompt1 ^ isPrompt2)) return;
-    else if (runSample_=="QCD"   &&  (isPrompt1 & isPrompt2)) return;
-    
-    CountEvents(9, "After double counting removal",ww,fcuts);
-    FillHistoCounts(9, ww);
-    FHM->MakeMainHistos(9, ww);
-    
-
-    if ( Mbjbj < 60 || Mbjbj > 180) return;
-
-    CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
-    FillHistoCounts(10, ww);
-    FHM->MakeMainHistos(10, ww);
-
-
-    break;
 
   default :
     return;

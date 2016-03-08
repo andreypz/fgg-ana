@@ -13,15 +13,18 @@ Finally, to get this code:
 
 Now, you have it compiled. Enjoy, by running:
 ```
- fggRunJobs.py --load jobs-dy-el.json -d testDir -x zgammaRun zgAna.py  maxEvents=100
+ fggRunJobs.py --load data/jobs-dy-el.json -d testDir -x zgammaRun zgAna.py  maxEvents=100 --no-use-tarball
 ```
 where jobs-dy-el.json is the file prepared following instructions here: https://github.com/cms-analysis/flashgg/tree/master/MetaData
 
 To run over all the signal samples for HH -> bbgg analysis:
 ```
- fggRunJobs.py --load jobs-sig-hh-all.json -d HH-v7-bkg -H -D -m 0 -x hhRun hhAna.py  maxEvents=-1
+ fggRunJobs.py --load data/jobs-sig-hh-all.json -d HH-v7-bkg -H -D -m 0 -x hhRun hhAna.py  maxEvents=-1 --no-use-tarball
 ```
 (type ```fggRunJobs.py --help``` to see what all those options mean).
+
+Submit the whole thing to LSF (must be on lxplus):
+```fggRunJobs.py --load data/jobs-sig-hh-all.json -H -D -m 1 -d HH-v11-76X -x hhRun hhAna.py -n 2 -q 1nh```
 
 
 ## How to create your own analyzer:

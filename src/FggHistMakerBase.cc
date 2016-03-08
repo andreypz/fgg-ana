@@ -138,7 +138,7 @@ void FggHistMakerBase::MakePhotonPlots(const flashgg::Photon& ph, string dir)
   std::string EBEE = "None";
   if (ph.isEB()) EBEE = "Barrel";
   else if (ph.isEE()) EBEE = "Endcap";
-  hists->fill1DHist(ph.userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2Values"), dir+"ph_mvaScoreEGamma_"+EBEE,
+  hists->fill1DHist(ph.userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values"), dir+"ph_mvaScoreEGamma_"+EBEE,
 		    ";EGamma MVA score",     100, -1,1,   1,dir);
   //hists->fill1DHist(ph.CiCPF4chgpfIso02()[0],dir+"ph_CiCPF4chgpfIso02", ";ph_CiCPF4chgpfIso02", 100, 0,5, 1,dir);
 

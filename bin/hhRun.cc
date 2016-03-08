@@ -8,7 +8,7 @@ int main(int argc, char* argv[])
 {
   // load framework libraries
   gSystem->Load( "libFWCoreFWLite" );
-  AutoLibraryLoader::enable();
+  //AutoLibraryLoader::enable();
   
   gSystem->Load( "libDataFormatsFWLite.so" );
   gSystem->Load( "libDataFormatsPatCandidates.so" );

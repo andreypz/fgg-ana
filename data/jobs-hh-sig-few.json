@@ -1,0 +1,9 @@
+{
+    "processes" : {
+        "GravitonToHHTo2B2G_M-250" : ["/GluGluToBulkGravitonToHHTo2B2G_M-250_narrow_13TeV-madgraph"],
+	"GravitonToHHTo2B2G_M-300" : ["/GluGluToBulkGravitonToHHTo2B2G_M-300_narrow_13TeV-madgraph"],
+        "RadionToHHTo2B2G_M-250" : ["/GluGluToRadionToHHTo2B2G_M-250_narrow_13TeV-madgraph"],
+        "RadionToHHTo2B2G_M-300" : ["/GluGluToRadionToHHTo2B2G_M-300_narrow_13TeV-madgraph"]
+        },
+     "cmdLine" : "campaign=SignalFall15DR76 targetLumi=1e+3"
+}
