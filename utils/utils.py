@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from optparse import OptionParser
 import sys,os,datetime,re,glob
+from colors import *
 from array import *
 from ROOT import *
 gROOT.SetBatch()
@@ -106,7 +107,7 @@ def getColors(sample):
     l = eval(conf.get(sample, "line"))
   if conf.has_option(sample,'fill'):
     f = eval(conf.get(sample, "fill"))
-
+  
   return [l,f]
 
 def getTotalEvents(f):
@@ -228,7 +229,7 @@ def stackQCD(dic, hName, lumi):
 
   return qcd_tot
 
-def makeStack(bZip, histDir, histoName, leg, lumi, howToScale, normToScale=None):
+def makeStack(bZip, histDir, histoName, leg, lumi, howToScale, normToScale=None, doOverflow=True):
   hs = THStack("temp", "Stacked histo")
 
   #samplesToAdd = []
@@ -245,14 +246,18 @@ def makeStack(bZip, histDir, histoName, leg, lumi, howToScale, normToScale=None)
     else:
       h1 = f.Get(hName)
 
+      
     if h1==None:
       print 'None histogrammm:',hName
       continue
     else:
       h = h1.Clone()
-
+      if doOverflow:
+        handleOverflowBins(h)
     scale = 1
 
+    #print 'COLORS = ', getColors(n)
+    
     h.SetLineColor(int(getColors(n)[0]))
     h.SetLineWidth(2)
 

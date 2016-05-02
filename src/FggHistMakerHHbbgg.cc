@@ -50,10 +50,10 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
     Float_t Mgg  = Hgg.M();
     hists->fill1DHist(Mgg, Form("01_Mgg_%s_cut%i", d, num),";m_{#gamma#gamma}", 60,110,170,  weight, dir);
 
-    hists->fill1DHist(Hgg.Pt(), Form("01_pT_gg_%s_cut%i", d, num),";p_{T}^{#gamma#gamma}", 100,0,600,  weight, dir);
+    hists->fill1DHist(Hgg.Pt(), Form("01_pT_gg_%s_cut%i", d, num),";p_{T}^{#gamma#gamma}", 100,0,300,  weight, dir);
 
-    hists->fill1DHist(_gamma1.Pt(), Form("03_gamma1_pt_%s_cut%i", d, num),";Leading p_{T}^{#gamma}", 100,0,300,  weight, dir);
-    hists->fill1DHist(_gamma2.Pt(), Form("03_gamma2_pt_%s_cut%i", d, num),";Trailing p_{T}^{#gamma}",100,0,300,  weight, dir);
+    hists->fill1DHist(_gamma1.Pt(), Form("03_gamma1_pt_%s_cut%i", d, num),";Leading p_{T}^{#gamma}", 100,0,250,  weight, dir);
+    hists->fill1DHist(_gamma2.Pt(), Form("03_gamma2_pt_%s_cut%i", d, num),";Trailing p_{T}^{#gamma}",100,0,150,  weight, dir);
 
     hists->fill1DHist(_gamma1.Eta(), Form("03_gamma1_eta_%s_cut%i", d, num),";Leading #eta^{#gamma}", 50,-5,5,  weight, dir);
     hists->fill1DHist(_gamma2.Eta(), Form("03_gamma2_eta_%s_cut%i", d, num),";Trailing #eta^{#gamma}",50,-5,5,  weight, dir);

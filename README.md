@@ -2,7 +2,7 @@
 To begin with this analyzers you must to set up the *flashgg*  framework first, see here: https://github.com/cms-analysis/flashgg
 Then we need *bbgTools*, since some of the methods from there are used: https://github.com/ResonantHbbHgg/bbggTools
 
-Finally, to get this code:
+Finally, to get the *fgg-ana* code:
 ```
  cd $CMSSW_BASE/src
  mkdir APZ
@@ -11,21 +11,29 @@ Finally, to get this code:
  scram b -j9
 ```
 
-Now, you have it compiled. Enjoy, by running:
+Now, you have it compiled!
+
+Enjoy, by running:
 ```
  fggRunJobs.py --load data/jobs-dy-el.json -d testDir -x zgammaRun zgAna.py  maxEvents=100 --no-use-tarball
 ```
 where jobs-dy-el.json is the file prepared following instructions here: https://github.com/cms-analysis/flashgg/tree/master/MetaData
 
-To run over all the signal samples for HH -> bbgg analysis:
+To run over all the signal samples for *HH -> bbgg* analysis:
 ```
- fggRunJobs.py --load data/jobs-sig-hh-all.json -d HH-v7-bkg -H -D -m 0 -x hhRun hhAna.py  maxEvents=-1 --no-use-tarball
+ fggRunJobs.py --load data/jobs-sig-hh-all.json -d OutDir -H -D -m 0 -x hhRun hhAna.py  maxEvents=-1 --no-use-tarball
 ```
 (type ```fggRunJobs.py --help``` to see what all those options mean).
 
-Submit the whole thing to LSF (must be on lxplus):
-```fggRunJobs.py --load data/jobs-sig-hh-all.json -H -D -m 1 -d HH-v11-76X -x hhRun hhAna.py -n 2 -q 1nh```
-
+Submit the whole thing to LSF (must be on lxplus and make sure to execute this: ```voms-proxy-init --voms cms --valid 168:00```):
+```
+fggRunJobs.py --load data/jobs-sig-hh-all.json -H -D -m 1 -d OutDir -x hhRun hhAna.py -n 2 -q 1nh
+```
+You may close the job watcher (Ctrl-C), and check the status of the submission with the ```--summary``` command:
+```
+fggRunJobs.py --load <task_folder>/config.json --summary
+```
+(Not sure if this works though...)
 
 ## How to create your own analyzer:
  * Write _src/MyAna.cc_ and _interface/MyAna.h_ files. It is a good idea to inherit it from DummyAnalyzer (see my other analyzers: GenAna, ZgammaAna), but this is not necessary.

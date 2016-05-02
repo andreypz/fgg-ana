@@ -159,8 +159,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       Float_t tmp_mgg = it->mass();
       if (p1->pt() > tmp_mgg/3 && p2->pt() > tmp_mgg/4 &&
-	  tmp_mgg > 100 && tmp_mgg < 180 &&
-	  deltaR(*p1,*p2) > 0.4)
+	  tmp_mgg > 100 && tmp_mgg < 180)
+	//&&	  deltaR(*p1,*p2) > 0.4)
 	kinema = true;
       else continue;
 	//if (p2->pt() < 15) continue;
@@ -522,7 +522,12 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     //if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
 
 
-    CountEvents(5, " .. Reserve ..",ww,fcuts);
+
+    if (runSample_=="DiPhoton"   && !(isPrompt1 & isPrompt2)) return;
+    else if (runSample_=="GJets" && !(isPrompt1 ^ isPrompt2)) return;
+    else if (runSample_=="QCD"   &&  (isPrompt1 & isPrompt2)) return;
+
+    CountEvents(5, "After double counting removal",ww,fcuts);
     FillHistoCounts(5, ww);
     FHM->MakeMainHistos(5, ww);
 
@@ -530,6 +535,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     if (myJets25.size()<2) return;
     CountEvents(6, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
     FillHistoCounts(6, ww);
+    FHM->MakeMainHistos(6, ww);
     FHM->MakeNPlots(6, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
     sort(myJets25.begin(), myJets25.end(), P4SortCondition);
@@ -550,18 +556,12 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     CountEvents(8, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
     FillHistoCounts(8, ww);
     FHM->MakeMainHistos(8, ww);
-
     FHM->MakeNPlots(8, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
 
-    if (runSample_=="DiPhoton"   && !(isPrompt1 & isPrompt2)) return;
-    else if (runSample_=="GJets" && !(isPrompt1 ^ isPrompt2)) return;
-    else if (runSample_=="QCD"   &&  (isPrompt1 & isPrompt2)) return;
-
-    CountEvents(9, "After double counting removal",ww,fcuts);
+    CountEvents(9, "... Reserved",ww,fcuts);
     FillHistoCounts(9, ww);
     FHM->MakeMainHistos(9, ww);
-
 
     if ( Mbjbj < 60 || Mbjbj > 180) return;
 

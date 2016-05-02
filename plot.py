@@ -18,7 +18,6 @@ parser.add_option("-v","--verbose",dest="verbose",action="store_true", default=F
 parser.add_option("-p", "--period",dest="period", default="2012",  help="Year period; 2011 or 2012")
 parser.add_option("--bkg",  dest="bkg",  action="store_true", default=False, help="Make plots from bkg sample")
 parser.add_option("--qcd",  dest="qcd",  action="store_true", default=False, help="Include QCD samples")
-parser.add_option("--mcfm", dest="mcfm", action="store_true", default=False, help="Use MCFM  as a signal")
 parser.add_option("--sig",  dest="sig",  action="store_true", default=False, help="Signal MC")
 parser.add_option("--data", dest="data", action="store_true", default=False, help="Data only")
 parser.add_option("--vbf",  dest="vbf",  action="store_true", default=False, help="Use signal samples: ggH, vbf, vH")
@@ -95,8 +94,8 @@ if __name__ == "__main__":
   if doBkg:
     #bkgFiles.append(TFile(hPath+"/m_ZG_"+subsel+"_"+period+".root","OPEN"))
     #bkgNames.append('ZG')
-    bkgFiles.append(TFile(hPath+"/output_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root","OPEN"))
-    bkgNames.append('DYJets50')
+    #bkgFiles.append(TFile(hPath+"/output_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root","OPEN"))
+    #bkgNames.append('DYJets50')
 
     bkgFiles.append(TFile(hPath+"/output_DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa.root","OPEN"))
     bkgNames.append('DiPhotons')
@@ -120,6 +119,10 @@ if __name__ == "__main__":
 
     bkgZip = zip(bkgNames, bkgFiles)
 
+
+    print '\t\t my BKG yields'
+    print yields_bkg
+
   else: bkgZip = None
 
   sigGrav  = {}
@@ -142,14 +145,13 @@ if __name__ == "__main__":
     print 'Key error in single H?  Who cares...'
     sigFileGG = sigFileVBF = sigFileVH = None
 
-  sigFileZjp  = TFile(hPath+"/hhhh_ZtoJPsiGamma_1.root",     "OPEN")
-  sigFileHjp  = TFile(hPath+"/hhhh_HiggsToJPsiGamma_1.root", "OPEN")
+  if opt.zjp: sigFileZjp  = TFile(hPath+"/hhhh_ZtoJPsiGamma_1.root",     "OPEN")
+  if opt.zjp: sigFileHjp  = TFile(hPath+"/hhhh_HiggsToJPsiGamma_1.root", "OPEN")
   #sigFileHjp  = TFile(hPath+"/hhhh_HiggsToJPsiGamma_RECO.root", "OPEN")
 
-  ggHZGFile   = TFile(hPath+"/hhhh_ggHZG-"+str(mass)+"_1.root", "OPEN")
+  #if opt.hzg: ggHZGFile   = TFile(hPath+"/hhhh_ggHZG-"+str(mass)+"_1.root", "OPEN")
 
-  if opt.mcfm:  sigFile = sigFileMCFM
-  elif opt.hjp: sigFile = sigFileHjp
+  if opt.hjp: sigFile = sigFileHjp
   elif opt.zjp: sigFile = sigFileZjp
   else:         sigFile = sigFileGG
 
@@ -300,8 +302,11 @@ if __name__ == "__main__":
 
   if doBkg:
     if sel=='hhbbgg':
-      names = ['DYJet50', 'DiPhoton', 'GJets20','GJets40','Grav m = 300']
-      yields_all  = [yields_bkg[0],yields_bkg[1],yields_bkg[2],yields_bkg[3], yields_grav['300']]
+      names = ['DiPhoton', 'GJets20','GJets40',"QCD_EM_Pt_40"]
+      yields_all  = [yields_bkg[0],yields_bkg[1],yields_bkg[2],yields_bkg[3]]
+      if opt.sig:
+        names.append('Grav m = 300')
+        yields_all.append(yields_grav['300'])
     else:
       names = ['DYJet50', 'Signal @125']
       yields_all = [yields_bkg[0],yields_sig]
