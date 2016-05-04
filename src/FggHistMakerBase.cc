@@ -296,8 +296,8 @@ void FggHistMakerBase::MakeNPlots(Int_t num, UInt_t nphoCut, UInt_t nJets, UInt_
   //hists->fill1DHist(nphoHZG,   Form("size_phHZG_cut%i",  num), ";Number of photons (HZG)",   5,0,5, w, "N");
   hists->fill1DHist(nphoCut, Form("size_pho_cut%i",num), ";Number of photons (Cut based)", 5,0,5, w, "N");
   //hists->fill1DHist(nphoMVA,   Form("size_phMVA_cut%i",  num), ";Number of photons (MVA)",   5,0,5, w, "N");
-  hists->fill1DHist(nJets,     Form("size_jets_cut%i",   num), ";Number of Jets",            5,0,5, w, "N");
-  hists->fill1DHist(nbJets,    Form("size_bjets_cut%i",  num), ";Number of b-Jets",          5,0,5, w, "N");
+  hists->fill1DHist(nJets,     Form("size_jets_cut%i",   num), ";Number of Jets",            7,0,7, w, "N");
+  hists->fill1DHist(nbJets,    Form("size_bjets_cut%i",  num), ";Number of b-tagged Jets",   7,0,7, w, "N");
 }
 
 float FggHistMakerBase::Zeppenfeld(const TLorentzVector& p, const TLorentzVector& pj1, const TLorentzVector& pj2)

@@ -60,7 +60,7 @@ elif 'Graviton' in customize.processId:
     sample = 'Graviton'
 elif 'Radion' in customize.processId:
     sample = 'Radion'
-else: sample='Nonono'
+else: sample='Noname'
 
 
 process.HHbbggAnalyzer = cms.PSet(

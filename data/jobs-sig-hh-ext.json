@@ -4,5 +4,5 @@
         "RadionToHHTo2B2G_M-550" : ["/GluGluToRadionToHHTo2B2G_M-550_narrow_13TeV-madgraph"],
 	"HH-NonRes-3": ["/GluGluToHHTo2B2G_node_3_13TeV-madgraph"]
     },
-     "cmdLine" : "campaign=SignalFall15DR76_ext1 targetLumi=1e+3"
+     "cmdLine" : "campaign=HHbbgg_Signal76X_RegVars targetLumi=1e+3"
 }

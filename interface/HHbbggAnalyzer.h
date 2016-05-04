@@ -42,7 +42,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
 
-  string bTag;
+  string bTagName;
   edm::InputTag rhoFixedGrid_;
   // ORDER MATTERS:
   //std::vector<edm::InputTag> inputTagJets_;

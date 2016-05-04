@@ -299,7 +299,7 @@ if __name__ == "__main__":
     if os.path.isdir(pathBase+"/"+d):
       plot_types.append(d)
 
-
+  names=None
   if doBkg:
     if sel=='hhbbgg':
       names = ['DiPhoton', 'GJets20','GJets40',"QCD_EM_Pt_40"]

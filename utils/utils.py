@@ -803,7 +803,8 @@ def yieldsTable(yieldList, names, num=True):
   l1 = ["Cut"]
   if num:
     l1.insert(0,"")
-  l1.extend(names)
+
+  if names!=None: l1.extend(names)
 
   # print 'First line in yieldsTable:', l1
 
@@ -817,10 +818,10 @@ def yieldsTable(yieldList, names, num=True):
     if line==0:l.append('Initial Events')
     else:      l.append(cuts[line-1])
 
-    for yi in yieldList:
-      #print line, yi
-      l.append(yi[line])
-      # print l
+    if yieldList!=None:
+      for yi in yieldList:
+        l.append(yi[line])
+
     t.append(l)
 
   # print t

@@ -24,7 +24,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   FHM = new FggHistMakerHHbbgg(hists);
   tools = new bbggTools();
 
-  bTag = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
+  bTagName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
@@ -232,9 +232,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       }
 
-      passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
+      passID = passID && tools->HggHLTpreselection(&(*it));
 
-      //passID = passID && tools->HggHLTpreselection(&(*it));
+      //passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
+      
+      // Z+Jets CR: reverted electron vetoes 
+      passID = passID && !p1->passElectronVeto() && !p2->passElectronVeto();
+
 
       if (!passID) continue;
 
@@ -442,7 +446,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       // Order the Jets by the b-discriminator value:
       //
       //Only keep the b-tagged jets:
-      if (jet.bDiscriminator(bTag) < -1) continue;
+      if (jet.bDiscriminator(bTagName) < -1) continue;
       // Begin with putting the first jet in the array
       if (bJets.size()==0){
 	bJets.push_back(jet);
@@ -452,7 +456,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       // Now loop over all and order them by b-tag discriminator
       for (std::vector<flashgg::Jet>::const_iterator b = bJets.begin(); b!= bJets.end(); b++) {
 	auto nx = std::next(b);
-	if ( jet.bDiscriminator(bTag) > b->bDiscriminator(bTag)) {
+	if ( jet.bDiscriminator(bTagName) > b->bDiscriminator(bTagName)) {
 	  bJets.insert(b, jet);
 	  break;
 	}
@@ -549,7 +553,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     FHM->MakeJetPlots(bJets[0], "bJet-Lead");
     FHM->MakeJetPlots(bJets[1], "bJet-Sub");
-
+    hists->fill1DHist(bJets[0].bDiscriminator(bTagName) + bJets[1].bDiscriminator(bTagName),
+		      "bJets_sumOfBtags",";Sum of two bTag Discriminators", 100, 0, 2.3, ww, "bJets");
+       
     if (bjet1.Pt() < 25 || bjet2.Pt() < 25) return;
     if (fabs(bjet1.Eta()) > 2.5 || fabs(bjet2.Eta()) > 2.5) return;
 
@@ -558,10 +564,11 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeMainHistos(8, ww);
     FHM->MakeNPlots(8, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
-
+    
     CountEvents(9, "... Reserved",ww,fcuts);
     FillHistoCounts(9, ww);
     FHM->MakeMainHistos(9, ww);
+
 
     if ( Mbjbj < 60 || Mbjbj > 180) return;
 
@@ -571,13 +578,31 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
 
 
-    if (bJets[0].bDiscriminator(bTag) < 0.8) return;
+    // Signal Region: High Purity
+    if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) > 0.8){ 
+      CountEvents(11, "SR: High Purity",ww,fcuts);
+      FillHistoCounts(11, ww);
+      FHM->MakeMainHistos(11, ww);
+    }
+
+
+    // Signal Region: Medium Purity
+    if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){ 
+      CountEvents(12, "SR: Medium Purity",ww,fcuts);
+      FillHistoCounts(12, ww);
+      FHM->MakeMainHistos(12, ww);
+    }
+
+
+    // Control Region: Light Jets
+    if (bJets[0].bDiscriminator(bTagName) < 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){ 
+      CountEvents(13, "CR: Light Jets",ww,fcuts);
+      FillHistoCounts(13, ww);
+      FHM->MakeMainHistos(13, ww);
+    }
+
+
     
-    CountEvents(11, "b-tag > 0.8",ww,fcuts);
-    FillHistoCounts(11, ww);
-    FHM->MakeMainHistos(11, ww);
-
-
     break;
 
   case 2 :

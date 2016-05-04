@@ -52,5 +52,5 @@
 	"HH-NonRes-13": ["/GluGluToHHTo2B2G_node_13_13TeV-madgraph"],
 	"HH-NonRes-Box": ["/GluGluToHHTo2B2G_node_box_13TeV-madgraph"]
     },
-     "cmdLine" : "campaign=SignalFall15DR76 targetLumi=1e+3"
+     "cmdLine" : "maxEvents=-1 campaign=HHbbgg_Signal76X_RegVars targetLumi=1e+3"
 }
