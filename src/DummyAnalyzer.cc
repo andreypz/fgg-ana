@@ -16,6 +16,7 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
 {
   cout<<"\t DDDDD \t Dummy is constructing you..."<<endl;
   // This is an exmple of how to use TFileService histograms:
+  //TFileDirectory subDir = fs->mkdir( "mySubDirectory" );
   hists_["DummyHisto"] = fs.make<TH1F>("DummyPt"  , "pt"  ,  100,  0., 300.);
   // This is the HistoManager class (notice, no underscore): 
   hists    = new HistManager(fs.getBareDirectory()->GetFile());

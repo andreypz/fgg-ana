@@ -21,6 +21,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 {
 
   cout<<red<<"\t HHHHbbbbgggg \t Constructructor in "<<__PRETTY_FUNCTION__<<def<<endl;
+
   FHM = new FggHistMakerHHbbgg(hists);
   tools = new bbggTools();
 
@@ -28,7 +29,6 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
-  /*
   outTree = fs.make<TTree>("TCVARS","Limit tree for HH->bbgg analyses");
   //outTree = new TTree("TCVARS", "Limit tree for HH->bbgg analyses");
   outTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
@@ -38,7 +38,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   outTree->Branch("mjj", &o_bbMass, "o_bbMass/D");
   outTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
   outTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
-  */
+
 
 }
 
@@ -512,7 +512,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
   Float_t Mbjbj = (bjet1 + bjet2).M();
 
-  //Double_t Mtot = (gamma1 + gamma2 + bjet1 + bjet2).M();
+  Double_t Mtot = (gamma1 + gamma2 + bjet1 + bjet2).M();
 
 
   switch ( cutFlow_ ) {
@@ -593,23 +593,22 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FillHistoCounts(10, ww);
     FHM->MakeMainHistos(10, ww);
 
-    /*
     o_run = runNumber;
     o_evt = eventNumber;
     o_weight = ww;
     o_bbMass = Mbjbj;
     o_ggMass = Mgg;
     o_bbggMass = Mtot;
-    */
-    
+
+
     // Signal Region: High Purity
     if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) > 0.8){
       CountEvents(11, "SR: High Purity",ww,fcuts);
       FillHistoCounts(11, ww);
       FHM->MakeMainHistos(11, ww);
 
-      //o_category = 0;
-      //outTree->Fill();
+      o_category = 0;
+      outTree->Fill();
     }
 
 
@@ -619,8 +618,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FillHistoCounts(12, ww);
       FHM->MakeMainHistos(12, ww);
 
-      //o_category = 1;
-      //outTree->Fill();
+      o_category = 1;
+      outTree->Fill();
     }
 
 

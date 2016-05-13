@@ -6,7 +6,7 @@
 #include "FggHistMakerHHbbgg.h"
 #include "flashgg/bbggTools/interface/bbggTools.h"
 #include "flashgg/DataFormats/interface/Jet.h"
-//#include "TTree.h"
+#include "TTree.h"
 
 class HHbbggAnalyzer : public DummyAnalyzer {
 
@@ -43,7 +43,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
 
-  /*TTree *outTree;
+  TTree *outTree;
   Char_t    o_category;
   UInt_t    o_run;
   ULong64_t o_evt;
@@ -51,7 +51,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Double_t  o_bbMass;
   Double_t  o_ggMass;
   Double_t  o_bbggMass;
-  */
+
   
   string bTagName;
   edm::InputTag rhoFixedGrid_;
