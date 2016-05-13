@@ -55,5 +55,5 @@
     "GluGluToHHTo2B2G_node_11_13TeV-madgraph":{"xs":1},
     "GluGluToHHTo2B2G_node_12_13TeV-madgraph":{"xs":1},
     "GluGluToHHTo2B2G_node_13_13TeV-madgraph":{"xs":1},
-    "GluGluToHHTo2B2G_node_Box_13TeV-madgraph":{"xs":1}    
+    "GluGluToHHTo2B2G_node_box_13TeV-madgraph":{"xs":1}    
 }

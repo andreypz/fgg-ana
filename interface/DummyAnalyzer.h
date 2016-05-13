@@ -13,6 +13,7 @@
 #include "flashgg/DataFormats/interface/Electron.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "FWCore/Utilities/interface/Exception.h"
+#include "PhysicsTools/UtilAlgos/interface/BasicAnalyzer.h"
 
 
 #include "TH1.h"
@@ -24,11 +25,10 @@
 #include <iostream>
 #include <fstream>
 
-#include "PhysicsTools/UtilAlgos/interface/BasicAnalyzer.h"
 #include "HistManager.h"
 #include "colormod.h"
 
-#define nC 13
+#define nC 15
 
 class DummyAnalyzer : public edm::BasicAnalyzer {
  public:

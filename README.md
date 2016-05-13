@@ -11,9 +11,7 @@ Finally, to get the *fgg-ana* code:
  scram b -j9
 ```
 
-Now, you have it compiled!
-
-Enjoy, by running:
+Now, that you have it compiled, enjoy by running:
 ```
  fggRunJobs.py --load data/jobs-dy-el.json -d testDir -x zgammaRun zgAna.py  maxEvents=100 --no-use-tarball
 ```
@@ -29,11 +27,10 @@ Submit the whole thing to LSF (must be on lxplus and make sure to execute this: 
 ```
 fggRunJobs.py --load data/jobs-sig-hh-all.json -H -D -m 1 -d OutDir -x hhRun hhAna.py -n 2 -q 1nh
 ```
-You may close the job watcher (Ctrl-C), and check the status of the submission with the ```--summary``` command:
+You may close the job watcher (Ctrl-C, not sure if this works though...), and check the status of the submission with the ```--summary``` command:
 ```
 fggRunJobs.py --load <task_folder>/config.json --summary
 ```
-(Not sure if this works though...)
 
 ## How to create your own analyzer:
  * Write _src/MyAna.cc_ and _interface/MyAna.h_ files. It is a good idea to inherit it from DummyAnalyzer (see my other analyzers: GenAna, ZgammaAna), but this is not necessary.

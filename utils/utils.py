@@ -248,7 +248,7 @@ def makeStack(bZip, histDir, histoName, leg, lumi, howToScale, normToScale=None,
 
       
     if h1==None:
-      print 'None histogrammm:',hName
+      print 'None histogrammm:',hName, ' IN:', n
       continue
     else:
       h = h1.Clone()

@@ -28,6 +28,18 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
+  /*
+  outTree = fs.make<TTree>("TCVARS","Limit tree for HH->bbgg analyses");
+  //outTree = new TTree("TCVARS", "Limit tree for HH->bbgg analyses");
+  outTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
+  outTree->Branch("run", &o_run, "o_run/i");
+  outTree->Branch("evt", &o_evt, "o_evt/l");
+  outTree->Branch("evWeight", &o_weight, "o_weight/D");
+  outTree->Branch("mjj", &o_bbMass, "o_bbMass/D");
+  outTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
+  outTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
+  */
+
 }
 
 void HHbbggAnalyzer::beginJob()
@@ -64,6 +76,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   CountEvents(0, "Ntuple events",ww,fcuts);
   FillHistoCounts(0, ww);
 
+  eventNumber = event.id().event();
+  runNumber = event.id().run();
 
   edm::Handle<double> rhoHandle;
   event.getByLabel( rhoFixedGrid_, rhoHandle );
@@ -234,10 +248,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       passID = passID && tools->HggHLTpreselection(&(*it));
 
-      //passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
-      
-      // Z+Jets CR: reverted electron vetoes 
-      passID = passID && !p1->passElectronVeto() && !p2->passElectronVeto();
+      passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
+
+      // Z+Jets CR: reverted electron vetoes
+      //passID = passID && !p1->passElectronVeto() && !p2->passElectronVeto();
 
 
       if (!passID) continue;
@@ -338,7 +352,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     if(!accepted) return;
   }
-  
+
   CountEvents(2, "HLT di-photon Triggers",ww,fcuts);
   FillHistoCounts(2, ww);
 
@@ -351,35 +365,35 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   // -----------
   // SET PHOTONS
   //------------
-  
+
   TLorentzVector gamma1, gamma2;
   // Bools for removing double counting photons from the bkg MC samples
   Bool_t isPrompt1=false, isPrompt2=false;
-  
+
   if (useDiPhotons_){
     if (myDiPho.size()<1) return;
-    
+
     CountEvents(4, "Photons pass ID",ww,fcuts);
     FillHistoCounts(4, ww);
-    
-    
+
+
     const flashgg::Photon *p1, *p2;
     p1 = myDiPho[0].leadingPhoton();
     p2 = myDiPho[0].subLeadingPhoton();
     gamma1 = TLorentzVector(p1->px(), p1->py(), p1->pz(), p1->energy());
     gamma2 = TLorentzVector(p2->px(), p2->py(), p2->pz(), p2->energy());
-    
-    
+
+
     if (p1->genMatchType()==1) isPrompt1=1;
     if (p2->genMatchType()==1) isPrompt2=1;
-    
+
     /* //checks and printouts
        if (runSample_=="DiPhoton" && (p1->genMatchType()!=1 || p2->genMatchType()!=1))
        {
        cout<<"\t lead pho match type = "<<p1->genMatchType()<<endl;
        cout<<"\t sub pho match type = "<<p2->genMatchType()<<endl;
        }
-       
+
        if (runSample_=="GJets" && (p1->genMatchType()==1 && p2->genMatchType()==1))
        {
        cout<<"\t lead pho match type = "<<p1->genMatchType()<<endl;
@@ -388,41 +402,41 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     */
   }
   else{
-      
+
     sort(myPhotons.begin(), myPhotons.end(), P4SortCondition);
     if (myPhotons.size()<2) return;
     gamma1 = myPhotons[0];
     gamma2 = myPhotons[1];
   }
-  
+
 
   // ---------
   //  JETS
   // --------
-  
+
   //edm::Handle<reco::GenJetCollection> genJets;
   //event.getByLabel(edm::InputTag("slimmedGenJets"), genJets);
-  
+
   vector<TLorentzVector> myJets, myJets25;
   vector<flashgg::Jet> bJets;
   TLorentzVector bjet1, bjet2;
-  
+
   edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCol;
   event.getByLabel(jets_, jetsCol);
-  
+
   if (jetsCol->size()<1) return;
-  
+
   UInt_t nJets=0;
   for(UInt_t j = 0 ; j < jetsCol->at( 0 ).size() ; j++ ) {
     nJets++;
-    
+
     flashgg::Jet jet = jetsCol->at(0)[j];
-    
+
     //edm::Ptr<flashgg::Jet> jet(jetsCol, 0); Does not work
-    
+
     //if (!tools->isJetID( &jet )) continue;
     if (!jet.passesJetID(flashgg::JetIDLevel::Loose)) continue;
-    
+
     //std::cout<<j<<" Pass jet ID. Pt="<<jet.pt()<<std::endl;
     //std::cout<<j<<" Does not Pass jet ID. Pt="<<jet.pt()<<std::endl;
 
@@ -452,7 +466,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	bJets.push_back(jet);
 	continue;
       }
-      
+
       // Now loop over all and order them by b-tag discriminator
       for (std::vector<flashgg::Jet>::const_iterator b = bJets.begin(); b!= bJets.end(); b++) {
 	auto nx = std::next(b);
@@ -498,11 +512,14 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
   Float_t Mbjbj = (bjet1 + bjet2).M();
 
+  //Double_t Mtot = (gamma1 + gamma2 + bjet1 + bjet2).M();
+
+
   switch ( cutFlow_ ) {
   case 1 :
     // Default cutflow, for sync and final numbers
-        
-    
+
+
     /* //Double-counting removal on dR matching
        // Does not work since gen_photons are not prompt (isPromptFinalState method don't work)
       for (size_t g = 0;  g<gen_photons.size(); g++)
@@ -513,17 +530,25 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       ";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");
       hists->fill1DHist(dR2, "GEN_dR2_gamma-prompt",
       ";#DeltaR(gen prompt #gamma, reco #gamma)", 100,0,6,  ww, "GEN");
-      
+
       if (dR1 < 0.3) isPrompt1 = 1;
       if (dR2 < 0.3) isPrompt2 = 1;
       }
     */
     // Finished with double-counting removal
-    
-    
+
+
     //if (gamma1.DeltaR(gamma2) < 0.4) return;
     //if (gamma1.Pt() < 30 || gamma2.Pt() < 30) return;
     //if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
+
+    if (myJets25.size()<2) return;
+    CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(5, ww);
+    FHM->MakeMainHistos(5, ww);
+    FHM->MakeNPlots(5, myPhotons.size(), myJets.size(), bJets.size(), ww);
+
+    sort(myJets25.begin(), myJets25.end(), P4SortCondition);
 
 
 
@@ -531,18 +556,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     else if (runSample_=="GJets" && !(isPrompt1 ^ isPrompt2)) return;
     else if (runSample_=="QCD"   &&  (isPrompt1 & isPrompt2)) return;
 
-    CountEvents(5, "After double counting removal",ww,fcuts);
-    FillHistoCounts(5, ww);
-    FHM->MakeMainHistos(5, ww);
-
-
-    if (myJets25.size()<2) return;
-    CountEvents(6, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    CountEvents(6, "After double counting removal",ww,fcuts);
     FillHistoCounts(6, ww);
     FHM->MakeMainHistos(6, ww);
-    FHM->MakeNPlots(6, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
-    sort(myJets25.begin(), myJets25.end(), P4SortCondition);
 
     if (bJets.size()<2) return;
 
@@ -555,7 +572,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeJetPlots(bJets[1], "bJet-Sub");
     hists->fill1DHist(bJets[0].bDiscriminator(bTagName) + bJets[1].bDiscriminator(bTagName),
 		      "bJets_sumOfBtags",";Sum of two bTag Discriminators", 100, 0, 2.3, ww, "bJets");
-       
+
     if (bjet1.Pt() < 25 || bjet2.Pt() < 25) return;
     if (fabs(bjet1.Eta()) > 2.5 || fabs(bjet2.Eta()) > 2.5) return;
 
@@ -564,7 +581,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeMainHistos(8, ww);
     FHM->MakeNPlots(8, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
-    
+
     CountEvents(9, "... Reserved",ww,fcuts);
     FillHistoCounts(9, ww);
     FHM->MakeMainHistos(9, ww);
@@ -576,33 +593,46 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FillHistoCounts(10, ww);
     FHM->MakeMainHistos(10, ww);
 
-
-
+    /*
+    o_run = runNumber;
+    o_evt = eventNumber;
+    o_weight = ww;
+    o_bbMass = Mbjbj;
+    o_ggMass = Mgg;
+    o_bbggMass = Mtot;
+    */
+    
     // Signal Region: High Purity
-    if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) > 0.8){ 
+    if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) > 0.8){
       CountEvents(11, "SR: High Purity",ww,fcuts);
       FillHistoCounts(11, ww);
       FHM->MakeMainHistos(11, ww);
+
+      //o_category = 0;
+      //outTree->Fill();
     }
 
 
     // Signal Region: Medium Purity
-    if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){ 
+    if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){
       CountEvents(12, "SR: Medium Purity",ww,fcuts);
       FillHistoCounts(12, ww);
       FHM->MakeMainHistos(12, ww);
+
+      //o_category = 1;
+      //outTree->Fill();
     }
 
 
     // Control Region: Light Jets
-    if (bJets[0].bDiscriminator(bTagName) < 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){ 
+    if (bJets[0].bDiscriminator(bTagName) < 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){
       CountEvents(13, "CR: Light Jets",ww,fcuts);
       FillHistoCounts(13, ww);
       FHM->MakeMainHistos(13, ww);
     }
 
 
-    
+
     break;
 
   case 2 :

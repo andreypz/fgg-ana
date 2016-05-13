@@ -22,8 +22,7 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
 
   yields_txt_path = open_temp("/tmp", "out_cutlist", fcuts);  
   open_temp("/tmp", "synch", fout);  
-  //fcuts.open("./out_cutlist.txt", ofstream::out);
-  //fout.open("./out_synch_.txt",ofstream::out);
+
   fout.precision(3); fout.setf(ios::fixed, ios::floatfield);
   red.SetCode(Color::FG_RED);
   green.SetCode(Color::FG_GREEN);
@@ -89,7 +88,7 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
     W0=1;
  else if (runSample_=="GJets")
     W0=1;
-  else if (runSample_=="DiPhoton")
+ else if (runSample_=="DiPhoton")
     W0=0.5;
   else if (runSample_=="Graviton")
     W0=1;
@@ -114,7 +113,6 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
 
   hists->fill1DHist(-1, "evt_byCut",";cut #;weighted events", nC+1,-1,nC, totWeights, "Counts");
   hists->fill1DHist(-1, "evt_byCut_raw", ";cut #;events",     nC+1,-1,nC, totEvents,  "Counts");
-
 
   cout<<"Tot weights = "<<ULong64_t(totWeights)<<endl;
   //cout<<"Tot weights (double) = "<<totWeights<<endl;

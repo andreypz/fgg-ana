@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from optparse import OptionParser
+import argparse
 import sys,os,datetime
 from array import *
 from ROOT import *
@@ -9,32 +9,39 @@ import makeHTML as ht
 import numpy as np
 gROOT.SetBatch()
 
-parser = OptionParser(usage="usage: %prog plots-version-path [options -c, -e, -p, -m]")
-parser.add_option("-c","--cut",   dest="cut", type="int", default=5, help="Plots after a certain cut")
-parser.add_option("--mass", dest="mass", type="int", default=125,    help="Signal sample (mass)")
-parser.add_option("-m","--merge", dest="merge",action="store_true", default=False, help="Do merging?")
-parser.add_option("-v","--verbose",dest="verbose",action="store_true", default=False, help="Verbose level")
+parser =  argparse.ArgumentParser(description='Ploting my plots', usage="./plot.py path_to_files [--sig --data --bkg=[qcd]]")
+parser.add_argument("-d",  dest="myDir", required=True, help="The path_to_files where all root files with plots are stored.")
 
-parser.add_option("-p", "--period",dest="period", default="2012",  help="Year period; 2011 or 2012")
-parser.add_option("--bkg",  dest="bkg",  action="store_true", default=False, help="Make plots from bkg sample")
-parser.add_option("--qcd",  dest="qcd",  action="store_true", default=False, help="Include QCD samples")
-parser.add_option("--sig",  dest="sig",  action="store_true", default=False, help="Signal MC")
-parser.add_option("--data", dest="data", action="store_true", default=False, help="Data only")
-parser.add_option("--vbf",  dest="vbf",  action="store_true", default=False, help="Use signal samples: ggH, vbf, vH")
+parser.add_argument("-c","--cut",   dest="cut", type=int, default=5, help="Plots after a certain cut")
+#parser.add_argument("--mass", dest="mass", type=int, default=125,    help="Signal sample (mass)")
+#parser.add_argument("-m","--merge", dest="merge",action="store_true", default=False, help="Do merging?")
+parser.add_argument("-v","--verbose",dest="verbose",action="store_true", default=False, help="Verbose level")
 
-parser.add_option("--spec",dest="spec",action="store_true", default=False, help="Make some special plots at the end.")
-parser.add_option("--evt",dest="evt",action="store_true", default=False, help="Show raw events (not scaled to lumi) for MC samles")
-parser.add_option("-e","--extra",dest="extra",action="store_true", default=False, help="Make all extra plots")
-parser.add_option("--fit",dest="fit",action="store_true", default=False, help="Do the various fits")
-parser.add_option("--apz",dest="apz",action="store_true", default=False, help="Discover new particle (requires apzTree)")
-parser.add_option("--zjp",dest="zjp",action="store_true", default=False, help="Study J/Psi region and more (requires apzTree)")
-parser.add_option("--hjp",dest="hjp",action="store_true", default=False, help="Study J/Psi region and more (requires apzTree)")
-parser.add_option("-s", '--sel', dest="sel", type="string", default='mugamma',
+#parser.add_argument("-p", "--period",dest="period", default="2012",  help="Year period; 2011 or 2012")
+parser.add_argument("--bkg",  dest="bkg", nargs='*', choices=['all', 'qcd', 'dipho', 'zjets', 'gjets'], 
+                    help="Make plots from bkg samples specified")
+#parser.add_argument("--qcd",  dest="qcd",  action="store_true", default=False, help="Include QCD samples")
+parser.add_argument("--sig",  dest="sig",  action="store_true", default=False, help="Signal MC")
+parser.add_argument("--data", dest="data", action="store_true", default=False, help="Data only")
+#parser.add_argument("--vbf",  dest="vbf",  action="store_true", default=False, help="Use signal samples: ggH, vbf, vH")
+
+parser.add_argument("--spec",dest="spec",action="store_true", default=False, help="Make some special plots at the end.")
+parser.add_argument("--evt",dest="evt",action="store_true", default=False, help="Show raw events (not scaled to lumi) for MC samles")
+parser.add_argument("-e","--extra",dest="extra",action="store_true", default=False, help="Make all extra plots")
+#parser.add_argument("--fit",dest="fit",action="store_true", default=False, help="Do the various fits")
+#parser.add_argument("--apz",dest="apz",action="store_true", default=False, help="Discover new particle (requires apzTree)")
+parser.add_argument("--zjp",dest="zjp",action="store_true", default=False, help="Study J/Psi region and more (requires apzTree)")
+parser.add_argument("--hjp",dest="hjp",action="store_true", default=False, help="Study J/Psi region and more (requires apzTree)")
+parser.add_argument("-s", '--sel', dest="sel", default='mugamma',
                   help="Selection to be used. Options are: '4mu','2e2mu', 'zee','mugamma', 'elgamma'")
 
-(opt, args) = parser.parse_args()
+opt = parser.parse_args()
 
-mass = opt.mass
+print opt
+
+#(opt, args) = parser.parse_args()
+
+#mass = opt.mass
 sel  = opt.sel
 
 comments = ["Bla",
@@ -50,16 +57,16 @@ if __name__ == "__main__":
   timer = TStopwatch()
   timer.Start()
 
-  if len(args) < 1:
-    parser.print_usage()
-    exit(1)
+  #if len(args) < 1:
+  #  parser.print_usage()
+  #  exit(1)
 
-  ver    = sys.argv[1].rstrip('/')
+  ver    = opt.myDir.rstrip('/')
   if 'vv/' in ver: ver = ver[3:].rstrip('/')
   cut=str(opt.cut)
-  doMerge = opt.merge
-  period  = opt.period
-  doBkg   = opt.bkg
+  #doMerge = opt.merge
+  #period  = opt.period
+  doBkg   = len(opt.bkg)
 
   u.setVerboseLevel(opt.verbose)
   #gROOT.ProcessLine(".L ../tdrstyle.C")
@@ -91,28 +98,33 @@ if __name__ == "__main__":
 
 
   qcdSamples = None
-  if doBkg:
+  for bg in opt.bkg:
+    print '\t Adding bkg=', bg
     #bkgFiles.append(TFile(hPath+"/m_ZG_"+subsel+"_"+period+".root","OPEN"))
     #bkgNames.append('ZG')
-    #bkgFiles.append(TFile(hPath+"/output_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root","OPEN"))
-    #bkgNames.append('DYJets50')
+    if bg in ['zjets','all']:
+      bkgFiles.append(TFile(hPath+"/output_DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8.root","OPEN"))
+      bkgNames.append('DYJets50')
 
-    bkgFiles.append(TFile(hPath+"/output_DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa.root","OPEN"))
-    bkgNames.append('DiPhotons')
+    if bg in ['dipho','all']:
+      bkgFiles.append(TFile(hPath+"/output_DiPhotonJetsBox_MGG-80toInf_13TeV-Sherpa.root","OPEN"))
+      bkgNames.append('DiPhotons')
 
-    bkgFiles.append(TFile(hPath+"/output_GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
-    bkgNames.append('GJets20')
-    
-    bkgFiles.append(TFile(hPath+"/output_GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root","OPEN"))
-    bkgNames.append('GJets40')
+    if bg in ['gjets','all']:
+      bkgFiles.append(TFile(hPath+"/output_GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
+      bkgNames.append('GJets20')
 
-    bkgFiles.append(TFile(hPath+"/output_QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
-    bkgNames.append('QCD_EM_Pt_40')
-    
-    bkgFiles.append(TFile(hPath+"/output_QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
-    bkgNames.append('QCD_EM_Pt_30to40')
-    
-    
+      bkgFiles.append(TFile(hPath+"/output_GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root","OPEN"))
+      bkgNames.append('GJets40')
+
+    if bg in ['qcd','all']:
+      bkgFiles.append(TFile(hPath+"/output_QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
+      bkgNames.append('QCD_EM_Pt_40')
+
+      bkgFiles.append(TFile(hPath+"/output_QCD_Pt-30to40_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8.root"))
+      bkgNames.append('QCD_EM_Pt_30to40')
+
+
     yields_bkg = []
     for b in xrange(len(bkgNames)):
       yields_bkg.append(u.getYields(bkgFiles[b],bkgNames[b],True))
@@ -123,7 +135,7 @@ if __name__ == "__main__":
     print '\t\t my BKG yields'
     print yields_bkg
 
-  else: bkgZip = None
+  if not doBkg: bkgZip = None
 
   sigGrav  = {}
   sigRadi  = {}
@@ -299,17 +311,17 @@ if __name__ == "__main__":
     if os.path.isdir(pathBase+"/"+d):
       plot_types.append(d)
 
-  names=None
+  names = []
+  yields_all = []
   if doBkg:
-    if sel=='hhbbgg':
-      names = ['DiPhoton', 'GJets20','GJets40',"QCD_EM_Pt_40"]
-      yields_all  = [yields_bkg[0],yields_bkg[1],yields_bkg[2],yields_bkg[3]]
-      if opt.sig:
+    for nbg, (bname, bg) in enumerate(bkgZip):
+      print nbg, bname
+      names.append(bname)
+      yields_all.append(yields_bkg[nbg])
+      
+      if opt.sig and sel=='hhbbgg':
         names.append('Grav m = 300')
         yields_all.append(yields_grav['300'])
-    else:
-      names = ['DYJet50', 'Signal @125']
-      yields_all = [yields_bkg[0],yields_sig]
   else:
     if opt.zjp or opt.hjp:
       names = ['H to J/Psi &gamma;','Z to J/Psi &gamma;', 'ggH-125']

@@ -48,7 +48,8 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
   if (_isGamma1Set && _isGamma2Set){
     TLorentzVector Hgg = _gamma1 + _gamma2;
     Float_t Mgg  = Hgg.M();
-    hists->fill1DHist(Mgg, Form("01_Mgg_%s_cut%i", d, num),";m_{#gamma#gamma}", 60,110,170,  weight, dir);
+    hists->fill1DHist(Mgg, Form("01_Mgg_%s_cut%i", d, num),";m_{#gamma#gamma}", 60,100,180,  weight, dir);
+    hists->fill1DHist(Mgg, Form("01_Mgg_Hig_%s_cut%i", d, num),";m_{#gamma#gamma}", 60,110,140,  weight, dir);
 
     hists->fill1DHist(Hgg.Pt(), Form("01_pT_gg_%s_cut%i", d, num),";p_{T}^{#gamma#gamma}", 100,0,300,  weight, dir);
 
@@ -69,6 +70,7 @@ void FggHistMakerHHbbgg::MakeMainHistos(Int_t num, Double_t weight, string dir)
     Float_t Mbjbj  = Hbb.M();
 
     hists->fill1DHist(Mbjbj, Form("02_Mbjbj_%s_cut%i", d, num),";m(jj), GeV", 50, 20,360, weight, dir);
+    hists->fill1DHist(Mbjbj, Form("02_Mbjbj_hig_hmass_%s_cut%i", d, num),";m(jj), GeV", 100, 0,1000, weight, dir);
     hists->fill1DHist(Hbb.Pt(), Form("02_pT_bjbj_%s_cut%i", d, num),";p_{T}^{jj}", 100,0,600,  weight, dir);
 
     hists->fill1DHist(fabs(_bjet1.Eta() -_bjet2.Eta()), Form("03_deltaEta_j1_j2_%s_cut%i", d, num),
