@@ -60,6 +60,8 @@ elif 'Graviton' in customize.processId:
     sample = 'Graviton'
 elif 'Radion' in customize.processId:
     sample = 'Radion'
+elif 'HH_' in customize.processId:
+    sample = 'NodeOfHH'
 else: sample='Noname'
 
 

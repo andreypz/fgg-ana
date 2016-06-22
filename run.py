@@ -4,10 +4,10 @@
 import sys,os
 
 import argparse
-parser =  argparse.ArgumentParser(description='Ploting my plots', usage="./run.py -r RUN")
-parser.add_argument("-d", dest="myDir", required=True, help="The name of the directory where all root files with plots are stored.")
+parser =  argparse.ArgumentParser(description='Ploting my plots', usage="./run.py -d DIR [--sig or --few or --bkg]")
+parser.add_argument("dir", help="The name of the directory where all root files with plots are stored.")
 
-parser.add_argument("--sig", action="store_true", default=False,  dest="sig", help="Run over all of the signal samples")
+parser.add_argument("--sig", default='res', dest="sig", choices=['all', 'res', 'nres'], help="Run over all of the signal samples")
 parser.add_argument("--few", action="store_true", default=False,  dest="few", help="Run over a few signal samples (for sync etc.)")
 parser.add_argument("--bkg", action="store_true", default=False,  dest="bkg", help="Run over background samples")
 # Make those above a chice options
@@ -17,8 +17,12 @@ print ' \t Options specified:\n', opt
 
 jobFile = "jobs-test.json"
 
-if opt.sig:
+if opt.sig=='all':
   jobFile = "jobs-sig-hh-all.json"
+if opt.sig=='res':
+  jobFile = "jobs-sig-hh-res.json"
+if opt.sig=='nres':
+  jobFile = "jobs-sig-hh-nonres.json"
 if opt.few:
   jobFile = "jobs-hh-sig-few.json"
 if opt.bkg:
@@ -35,4 +39,4 @@ if opt.lsf:
 else:
   myArgs+=' -m 0'
 
-os.system('fggRunJobs.py --load data/'+jobFile+' -d '+opt.myDir+' '+myArgs+' -x hhRun hhAna.py '+ suffix)
+os.system('fggRunJobs.py --load data/'+jobFile+' -d '+opt.dir+' '+myArgs+' -x hhRun hhAna.py '+ suffix)

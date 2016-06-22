@@ -7,6 +7,7 @@
 #include "flashgg/bbggTools/interface/bbggTools.h"
 #include "flashgg/DataFormats/interface/Jet.h"
 #include "TTree.h"
+#include "Angles.h"
 
 class HHbbggAnalyzer : public DummyAnalyzer {
 
@@ -43,16 +44,15 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
 
-  TTree *outTree;
+  TTree *flatTree, *genTree;
   Char_t    o_category;
   UInt_t    o_run;
   ULong64_t o_evt;
   Double_t  o_weight;
-  Double_t  o_bbMass;
-  Double_t  o_ggMass;
-  Double_t  o_bbggMass;
+  Double_t  o_bbMass, o_ggMass, o_bbggMass;
 
-  
+  Double_t gen_mHH, gen_ptH1, gen_ptH2, gen_cosTheta, gen_cosTheta2;
+  Angles *angles;
   string bTagName;
   edm::InputTag rhoFixedGrid_;
   // ORDER MATTERS:

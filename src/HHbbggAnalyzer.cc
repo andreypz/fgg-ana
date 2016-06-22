@@ -24,22 +24,32 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   FHM = new FggHistMakerHHbbgg(hists);
   tools = new bbggTools();
-
+  angles = new Angles();
   bTagName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
-  outTree = fs.make<TTree>("TCVARS","Limit tree for HH->bbgg analyses");
-  //outTree = new TTree("TCVARS", "Limit tree for HH->bbgg analyses");
-  outTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
-  outTree->Branch("run", &o_run, "o_run/i");
-  outTree->Branch("evt", &o_evt, "o_evt/l");
-  outTree->Branch("evWeight", &o_weight, "o_weight/D");
-  outTree->Branch("mjj", &o_bbMass, "o_bbMass/D");
-  outTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
-  outTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
+  flatTree = fs.make<TTree>("TCVARS","Limit tree for HH->bbgg analyses");
+  //flatTree = new TTree("TCVARS", "Limit tree for HH->bbgg analyses");
+  flatTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
+  flatTree->Branch("run", &o_run, "o_run/i");
+  flatTree->Branch("evt", &o_evt, "o_evt/l");
+  flatTree->Branch("evWeight", &o_weight, "o_weight/D");
+  flatTree->Branch("mjj", &o_bbMass, "o_bbMass/D");
+  flatTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
+  flatTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
 
-
+  if (runSample_=="NodeOfHH") {
+    genTree = fs.make<TTree>("GenTree","A tree for signal reweighting study");
+    genTree->Branch("run", &o_run, "run/i");
+    genTree->Branch("evt", &o_evt, "evt/l");
+    
+    genTree->Branch("mHH",  &gen_mHH,  "mHH/D");
+    genTree->Branch("ptH1", &gen_ptH1, "ptH1/D");
+    genTree->Branch("ptH2", &gen_ptH2, "ptH2/D");
+    genTree->Branch("cosTheta", &gen_cosTheta, "cosTheta/D");
+    genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
+  }
 }
 
 void HHbbggAnalyzer::beginJob()
@@ -79,6 +89,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   eventNumber = event.id().event();
   runNumber = event.id().run();
 
+  o_run = runNumber;
+  o_evt = eventNumber;
+
   edm::Handle<double> rhoHandle;
   event.getByLabel( rhoFixedGrid_, rhoHandle );
   const double rhoFixedGrd = *( rhoHandle.product() );
@@ -98,7 +111,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     //TLorentzVector gen_bjet1, gen_bjet2;
     TLorentzVector gen_bQ1, gen_bQ2;
     TLorentzVector tmp;
-
+    TLorentzVector H1, H2;
 
     for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
 
@@ -127,7 +140,30 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       }
 
+      // Save info for HH nodes samples, for re-weighting etc.
+      if (runSample_=="NodeOfHH") {
+	if (igen->pdgId()==25){
+	  //std::cout<<o_evt<<"  BB Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
+	  if (igen->daughter(0)->pdgId()==22)
+	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+
+	  if (abs(igen->daughter(0)->pdgId())==5)
+	    H2.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+	}
+      }
+      gen_ptH1 = H1.Pt();
+      gen_ptH2 = H2.Pt();
+      gen_mHH  = (H1+H2).M();
+      gen_cosTheta = angles->getCosThetaStar_CS(H1,H2,3500);
+
+      // Another version of costheta star:
+      TLorentzVector P1boost = H1; // take one higgs
+      TLorentzVector P12 = H1 + H2; // this is the total vectorial momenta of the system
+      P1boost.Boost(-P12.BoostVector());
+      gen_cosTheta2 = P1boost.CosTheta(); // this is the costTheta
     }
+
+    if (runSample_=="NodeOfHH") genTree->Fill();
 
     /*
     sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
@@ -143,6 +179,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     FHM->MakeMainHistos(0, ww, "GEN");
     */
+
   }
 
   vector<TLorentzVector> myLeptons, myPhotons;
@@ -593,8 +630,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FillHistoCounts(10, ww);
     FHM->MakeMainHistos(10, ww);
 
-    o_run = runNumber;
-    o_evt = eventNumber;
     o_weight = ww;
     o_bbMass = Mbjbj;
     o_ggMass = Mgg;
@@ -608,7 +643,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FHM->MakeMainHistos(11, ww);
 
       o_category = 0;
-      outTree->Fill();
+      flatTree->Fill();
     }
 
 
@@ -619,7 +654,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FHM->MakeMainHistos(12, ww);
 
       o_category = 1;
-      outTree->Fill();
+      flatTree->Fill();
     }
 
 
