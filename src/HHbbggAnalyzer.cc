@@ -39,7 +39,9 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   flatTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
   flatTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
 
-  if (runSample_=="NodeOfHH") {
+  nodesOfHH = false;
+  if (runSample_=="HH_SM" || runSample_.find("HH_NonRes")!=std::string::npos) {
+    nodesOfHH = true;
     genTree = fs.make<TTree>("GenTree","A tree for signal reweighting study");
     genTree->Branch("run", &o_run, "run/i");
     genTree->Branch("evt", &o_evt, "evt/l");
@@ -49,6 +51,20 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
     genTree->Branch("ptH2", &gen_ptH2, "ptH2/D");
     genTree->Branch("cosTheta", &gen_cosTheta, "cosTheta/D");
     genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
+
+    //std::string::size_type sz;   // alias of size_t
+    if (runSample_=="HH_SM") nodeFileNum=0;
+    else if (runSample_=="HH_NonRes_Box") nodeFileNum=1;
+    //else if (runSample_.find("HH_NonRes_")!=std::string::npos)
+    //cout<<runSample_.substr(10,1)<<"  "<<runSample_.substr(10,2)<<endl;
+    else if (runSample_.size()==11) nodeFileNum = stoi(runSample_.substr(10,1)); //One digit file number: 2-9
+    else if (runSample_.size()==12) nodeFileNum = stoi(runSample_.substr(10,2)); //Two digits: 10,11,12,13
+    else nodeFileNum = 99;
+    cout<<"\t sample = "<<runSample_<<"    nodeFileNum="<<nodeFileNum<<endl;
+
+    flatTree->Branch("file", &nodeFileNum, "file/i"); //
+    genTree->Branch("file",  &nodeFileNum, "file/i"); //
+ 
   }
 }
 
@@ -141,7 +157,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       }
 
       // Save info for HH nodes samples, for re-weighting etc.
-      if (runSample_=="NodeOfHH") {
+      if (nodesOfHH) {
 	if (igen->pdgId()==25){
 	  //std::cout<<o_evt<<"  BB Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
 	  if (igen->daughter(0)->pdgId()==22)
@@ -163,7 +179,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       gen_cosTheta2 = P1boost.CosTheta(); // this is the costTheta
     }
 
-    if (runSample_=="NodeOfHH") genTree->Fill();
+    if (nodesOfHH) genTree->Fill();
 
     /*
     sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);

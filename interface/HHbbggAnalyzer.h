@@ -50,7 +50,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   ULong64_t o_evt;
   Double_t  o_weight;
   Double_t  o_bbMass, o_ggMass, o_bbggMass;
-
+  UInt_t nodeFileNum;
+  Bool_t nodesOfHH;
   Double_t gen_mHH, gen_ptH1, gen_ptH2, gen_cosTheta, gen_cosTheta2;
   Angles *angles;
   string bTagName;

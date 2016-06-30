@@ -61,7 +61,7 @@ elif 'Graviton' in customize.processId:
 elif 'Radion' in customize.processId:
     sample = 'Radion'
 elif 'HH_' in customize.processId:
-    sample = 'NodeOfHH'
+    sample = str(customize.processId)
 else: sample='Noname'
 
 
