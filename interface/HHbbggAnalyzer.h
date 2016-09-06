@@ -6,8 +6,14 @@
 #include "FggHistMakerHHbbgg.h"
 #include "flashgg/bbggTools/interface/bbggTools.h"
 #include "flashgg/DataFormats/interface/Jet.h"
+
+#include "flashgg/Taggers/interface/GlobalVariablesDumper.h"
+
 #include "TTree.h"
 #include "Angles.h"
+
+
+typedef math::XYZTLorentzVector LorentzVector;
 
 class HHbbggAnalyzer : public DummyAnalyzer {
 
@@ -19,6 +25,10 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   void beginJob();
   void endJob();
   void analyze(const edm::EventBase& event);
+
+  LorentzVector  LorentzToLorentz(const TLorentzVector& v);
+  TLorentzVector LorentzToLorentz(const LorentzVector& v);
+
 
   //typedef std::vector<edm::Handle<edm::View<flashgg::Jet> > > JetCollectionVector;
   /*
@@ -44,19 +54,45 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
 
+  //Tree objects
   TTree *flatTree, *genTree;
   Char_t    o_category;
   UInt_t    o_run;
   ULong64_t o_evt;
   Double_t  o_weight;
   Double_t  o_bbMass, o_ggMass, o_bbggMass;
+
+  LorentzVector leadingPhoton, subleadingPhoton, diphotonCandidate;
+  LorentzVector leadingJet, subleadingJet, dijetCandidate;
+  LorentzVector leadingJet_KF, subleadingJet_KF, dijetCandidate_KF;
+  LorentzVector leadingJet_Reg, subleadingJet_Reg, dijetCandidate_Reg;
+  LorentzVector leadingJet_RegKF, subleadingJet_RegKF, dijetCandidate_RegKF;
+  LorentzVector diHiggsCandidate, diHiggsCandidate_KF, diHiggsCandidate_Reg,diHiggsCandidate_RegKF;
+  vector<int> leadingPhotonID, leadingPhotonISO, subleadingPhotonID, subleadingPhotonISO;
+  vector<double> genWeights;
+  float leadingJet_bDis, subleadingJet_bDis, jet1PtRes, jet1EtaRes, jet1PhiRes, jet2PtRes, jet2EtaRes, jet2PhiRes;
+  float CosThetaStar, leadingPhotonIDMVA, subleadingPhotonIDMVA, DiJetDiPho_DR_2, DiJetDiPho_DR_1, PhoJetMinDr;
+  std::map<std::string, int> myTriggerResults;
+
+  double genTotalWeight;
+  unsigned int nPromptInDiPhoton;
+  int leadingPhotonEVeto, subleadingPhotonEVeto;
+  int leadingJet_flavour, subleadingJet_flavour;
+  int isSignal, isPhotonCR;
+  //    int nvtx;
+
+  // End of tree objects
+
+
   UInt_t nodeFileNum;
   Bool_t nodesOfHH;
   Double_t gen_mHH, gen_ptH1, gen_ptH2, gen_cosTheta, gen_cosTheta2;
   Angles *angles;
   string bTagName;
   edm::InputTag rhoFixedGrid_;
-  // ORDER MATTERS:
+
+  // Inputs for Constructor:
+  // ORDER MATTERS!
   //std::vector<edm::InputTag> inputTagJets_;
   std::vector<std::string> myTriggers_;
   std::vector<double> phoIDcutEB_;
@@ -69,6 +105,9 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Bool_t useDiPhotons_;
   edm::InputTag diPhotons_;
   UInt_t phoIDtype_;
+
+  flashgg::GlobalVariablesDumper* globVar_;
+
 };
 
 

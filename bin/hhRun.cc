@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
   }
 
   PythonProcessDesc builder( argv[1], argc, argv );
+  //WrappedFWLiteHHbbggAnalyzer ana( *( builder.processDesc()->getProcessPSet() ), std::string( "HHbbggAnalyzer" ) );
   WrappedFWLiteHHbbggAnalyzer ana( *( builder.processDesc()->getProcessPSet() ), std::string( "HHbbggAnalyzer" ), std::string( "fsDir" ) );
 
   ana.beginJob();

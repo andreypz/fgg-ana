@@ -3,6 +3,8 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/Math/interface/deltaR.h"
 
+//#include "FWCore/Framework/interface/ConsumesCollector.h"
+
 
 //typedef std::pair<std::string,bool> IdPair;
 
@@ -29,28 +31,81 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
-  flatTree = fs.make<TTree>("TCVARS","Limit tree for HH->bbgg analyses");
-  //flatTree = new TTree("TCVARS", "Limit tree for HH->bbgg analyses");
+  globVar_ = new flashgg::GlobalVariablesDumper(cfg);
+
+
+  flatTree = fs.make<TTree>("bbggSelectionTree","Flat tree for HH->bbgg analysis");
+  std::map<std::string, std::string> replacements; // It's not doing nothing..
+  globVar_->bookTreeVariables(flatTree, replacements); // This fills event and run numbers
+  //flatTree->Branch("run", &o_run, "o_run/i");
+  //flatTree->Branch("evt", &o_evt, "o_evt/l");
+
+  // These are actually for Limit trees (can't we have them in one single tree)?
   flatTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
-  flatTree->Branch("run", &o_run, "o_run/i");
-  flatTree->Branch("evt", &o_evt, "o_evt/l");
   flatTree->Branch("evWeight", &o_weight, "o_weight/D");
   flatTree->Branch("mjj", &o_bbMass, "o_bbMass/D");
   flatTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
   flatTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
 
+  // Here is all vars from bbggTools code:
+  flatTree->Branch("genWeights", &genWeights);
+  flatTree->Branch("genTotalWeight", &genTotalWeight, "genTotalWeight/D");
+  flatTree->Branch("leadingPhoton", &leadingPhoton);
+  flatTree->Branch("leadingPhotonID", &leadingPhotonID);
+  flatTree->Branch("leadingPhotonISO", &leadingPhotonISO);
+  flatTree->Branch("leadingPhotonEVeto", &leadingPhotonEVeto, "leadingPhotonEVeto/I");
+  flatTree->Branch("leadingPhotonIDMVA", &leadingPhotonIDMVA, "leadingPhotonIDMVA/f");
+  flatTree->Branch("subleadingPhoton", &subleadingPhoton);
+  flatTree->Branch("subleadingPhotonID", &subleadingPhotonID);
+  flatTree->Branch("subleadingPhotonISO", &subleadingPhotonISO);
+  flatTree->Branch("subleadingPhotonEVeto", &subleadingPhotonEVeto, "subleadingPhotonEVeto/I");
+  flatTree->Branch("subleadingPhotonIDMVA", &subleadingPhotonIDMVA, "subleadingPhotonIDMVA/f");
+  flatTree->Branch("diphotonCandidate", &diphotonCandidate);
+  flatTree->Branch("nPromptInDiPhoton", &nPromptInDiPhoton, "nPromptInDiPhoton/I");
+  flatTree->Branch("leadingJet", &leadingJet);
+  flatTree->Branch("leadingJet_KF", &leadingJet_KF);
+  flatTree->Branch("leadingJet_Reg", &leadingJet_Reg);
+  flatTree->Branch("leadingJet_RegKF", &leadingJet_RegKF);
+  flatTree->Branch("leadingJet_bDis", &leadingJet_bDis, "leadingJet_bDis/F");
+  flatTree->Branch("leadingJet_flavour", &leadingJet_flavour, "leadingJet_flavour/I");
+  flatTree->Branch("subleadingJet", &subleadingJet);
+  flatTree->Branch("subleadingJet_KF", &subleadingJet_KF);
+  flatTree->Branch("subleadingJet_Reg", &subleadingJet_Reg);
+  flatTree->Branch("subleadingJet_RegKF", &subleadingJet_RegKF);
+  flatTree->Branch("subleadingJet_bDis", &subleadingJet_bDis, "subleadingJet_bDis/F");
+  flatTree->Branch("subleadingJet_flavour", &subleadingJet_flavour, "subleadingJet_flavour/I");
+  flatTree->Branch("dijetCandidate", &dijetCandidate);
+  flatTree->Branch("dijetCandidate_KF", &dijetCandidate_KF);
+  flatTree->Branch("dijetCandidate_Reg", &dijetCandidate_Reg);
+  flatTree->Branch("dijetCandidate_RegKF", &dijetCandidate_RegKF);
+  flatTree->Branch("diHiggsCandidate", &diHiggsCandidate);
+  flatTree->Branch("diHiggsCandidate_KF", &diHiggsCandidate_KF);
+  flatTree->Branch("diHiggsCandidate_Reg", &diHiggsCandidate_Reg);
+  flatTree->Branch("diHiggsCandidate_RegKF", &diHiggsCandidate_RegKF);
+  flatTree->Branch("isSignal", &isSignal, "isSignal/I");
+  flatTree->Branch("isPhotonCR", &isPhotonCR, "isPhotonCR/I");
+  flatTree->Branch("CosThetaStar", &CosThetaStar, "CosThetaStar/F");
+  flatTree->Branch("TriggerResults", &myTriggerResults);
+  flatTree->Branch("DiJetDiPho_DR_1", &DiJetDiPho_DR_1, "DiJetDiPho_DR_1/F");
+  flatTree->Branch("DiJetDiPho_DR_2", &DiJetDiPho_DR_2, "DiJetDiPho_DR_2/F");
+  flatTree->Branch("PhoJetMinDr", &PhoJetMinDr, "PhoJetMinDr/F");
+
+
+
   nodesOfHH = false;
   if (runSample_=="HH_SM" || runSample_.find("HH_NonRes")!=std::string::npos) {
     nodesOfHH = true;
+
     genTree = fs.make<TTree>("GenTree","A tree for signal reweighting study");
     genTree->Branch("run", &o_run, "run/i");
     genTree->Branch("evt", &o_evt, "evt/l");
-    
+
     genTree->Branch("mHH",  &gen_mHH,  "mHH/D");
     genTree->Branch("ptH1", &gen_ptH1, "ptH1/D");
     genTree->Branch("ptH2", &gen_ptH2, "ptH2/D");
     genTree->Branch("cosTheta", &gen_cosTheta, "cosTheta/D");
     genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
+
 
     //std::string::size_type sz;   // alias of size_t
     if (runSample_=="HH_SM") nodeFileNum=0;
@@ -62,9 +117,9 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
     else nodeFileNum = 99;
     cout<<"\t sample = "<<runSample_<<"    nodeFileNum="<<nodeFileNum<<endl;
 
-    flatTree->Branch("file", &nodeFileNum, "file/i"); //
-    genTree->Branch("file",  &nodeFileNum, "file/i"); //
- 
+    //flatTree->Branch("file", &nodeFileNum, "file/i"); //
+    //genTree->Branch("file",  &nodeFileNum, "file/i"); //
+
   }
 }
 
@@ -81,6 +136,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 {
   Double_t ww = 1;
   isRealData = event.isRealData();
+
+  hists_["DummyHisto"]->Fill(123);
+  globVar_->fill(event);
 
   if (!isRealData){
     edm::Handle<GenEventInfoProduct> genEvtInfo;
@@ -111,9 +169,27 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   edm::Handle<double> rhoHandle;
   event.getByLabel( rhoFixedGrid_, rhoHandle );
   const double rhoFixedGrd = *( rhoHandle.product() );
+  //const double rhoFixedGrd = globVar_->valueOf(globVar_->indexOf("rho"));
 
   FHM->Reset(rhoFixedGrd, 1, eventNumber);
   tools->setRho(rhoFixedGrd);
+
+  isSignal = 0;
+  isPhotonCR = 0;
+  CosThetaStar = -999;
+  //    nvtx = 0;
+  diphotonCandidate.SetPxPyPzE(0,0,0,0);// = diphoCand->p4();
+  leadingPhoton.SetPxPyPzE(0,0,0,0);// = diphoCand->leadingPhoton()->p4();
+  subleadingPhoton.SetPxPyPzE(0,0,0,0);// = diphoCand->subLeadingPhoton()->p4();
+  leadingJet.SetPxPyPzE(0,0,0,0);// = LeadingJet->p4();
+  leadingJet_bDis = 0;// = LeadingJet->bDiscriminator(bTagType);
+  leadingJet_flavour = 0;// = LeadingJet->partonFlavour();
+  subleadingJet.SetPxPyPzE(0,0,0,0);// = SubLeadingJet->p4();
+  subleadingJet_bDis = 0;//SubLeadingJet->bDiscriminator(bTagType);
+  subleadingJet_flavour = 0;//SubLeadingJet->partonFlavour();
+  dijetCandidate.SetPxPyPzE(0,0,0,0);// = leadingJet + subleadingJet;
+  diHiggsCandidate.SetPxPyPzE(0,0,0,0);// = diphotonCandidate + dijetCandidate;
+
 
   std::vector<TLorentzVector> gen_photons, gen_jets;
   //TLorentzVector gen_gamma1, gen_gamma2;
@@ -142,7 +218,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	if (igen->pdgId()==-5)
 	  gen_bQ2 = tmp;
       }
-
 
       //if (igen->pdgId()==22)
       //std::cout<<totEvents<<"\t"<<igen->pdgId()<<"\t\t Found a photon. Its status = "<<igen->status()
@@ -245,16 +320,16 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 		   (p1->isEE() && tools->isPhoID(&(*p1), phoIDcutEE_))
 		   );
 
-	passISO = ((p1->isEB() && tools->isPhoISO(&(*it), 0, phoISOcutEB_)) ||
-		   (p1->isEE() && tools->isPhoISO(&(*it), 0, phoISOcutEE_))
-		   );
+	//passISO = ((p1->isEB() && tools->isPhoISO(&(*it), 0, phoISOcutEB_)) ||
+	//	   (p1->isEE() && tools->isPhoISO(&(*it), 0, phoISOcutEE_))
+	//	   );
 	// SubLeading photon:
         passID = passID && (( p2->isEB() && tools->isPhoID(&(*p2), phoIDcutEB_)) ||
 			    ( p2->isEE() && tools->isPhoID(&(*p2), phoIDcutEE_))
 			    );
-	passISO = passISO && ((p2->isEB() && tools->isPhoISO(&(*it), 1, phoISOcutEB_)) ||
-			      (p2->isEE() && tools->isPhoISO(&(*it), 1, phoISOcutEE_))
-			      );
+	//passISO = passISO && ((p2->isEB() && tools->isPhoISO(&(*it), 1, phoISOcutEB_)) ||
+	//		      (p2->isEE() && tools->isPhoISO(&(*it), 1, phoISOcutEE_))
+	//		      );
 
 	passID = passID && passISO;
 	break;
@@ -299,7 +374,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       }
 
-      passID = passID && tools->HggHLTpreselection(&(*it));
+      //passID = passID && tools->HggHLTpreselection(&(*it));
 
       passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
 
@@ -471,8 +546,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   //event.getByLabel(edm::InputTag("slimmedGenJets"), genJets);
 
   vector<TLorentzVector> myJets, myJets25;
-  vector<flashgg::Jet> bJets;
-  TLorentzVector bjet1, bjet2;
+  vector<flashgg::Jet> bJets;  // These will be ordered by b-tag score
+  TLorentzVector bjet1, bjet2; // Those are as well
+  UInt_t ind1=99, ind2 =99;    // Using these indexes to order two jets by Pt
 
   edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCol;
   event.getByLabel(jets_, jetsCol);
@@ -646,11 +722,38 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FillHistoCounts(10, ww);
     FHM->MakeMainHistos(10, ww);
 
+
+    // -----
+    // Filling all the objects for flatTree
+    // ----------
     o_weight = ww;
     o_bbMass = Mbjbj;
     o_ggMass = Mgg;
     o_bbggMass = Mtot;
 
+    diphotonCandidate = LorentzToLorentz(gamma1+gamma2);
+    leadingPhoton     = LorentzToLorentz(gamma1);
+    subleadingPhoton  = LorentzToLorentz(gamma2);
+
+    if (bjet1.Pt()>bjet2.Pt()) {
+      ind1=0; ind2=1;
+    }
+    else {
+      ind1=1; ind2=0;
+    }
+
+    leadingJet = bJets[ind1].p4();
+    leadingJet_bDis = bJets[ind1].bDiscriminator(bTagName);
+    leadingJet_flavour = bJets[ind1].partonFlavour();
+    
+    subleadingJet = bJets[ind2].p4();
+    subleadingJet_bDis = bJets[ind2].bDiscriminator(bTagName);
+    subleadingJet_flavour = bJets[ind2].partonFlavour();
+      
+    dijetCandidate   = leadingJet + subleadingJet;
+    diHiggsCandidate = diphotonCandidate + dijetCandidate;
+
+    // End.  All flatTree objects must be filled now
 
     // Signal Region: High Purity
     if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) > 0.8){
@@ -766,4 +869,19 @@ void HHbbggAnalyzer::endJob()
 {
   cout<<"\t HHHHHbbbbbggggg \t END JOB in "<<__PRETTY_FUNCTION__<<endl;
   DummyAnalyzer::endJob(2);
+}
+
+
+LorentzVector HHbbggAnalyzer::LorentzToLorentz(const TLorentzVector& v)
+{
+  LorentzVector LoL;
+  LoL.SetPxPyPzE(v.Px(),v.Py(),v.Pz(),v.E());
+  return LoL;
+}
+
+TLorentzVector HHbbggAnalyzer::LorentzToLorentz(const LorentzVector& v)
+{
+  TLorentzVector LoL;
+  LoL.SetPxPyPzE(v.Px(),v.Py(),v.Pz(),v.E());
+  return LoL;
 }

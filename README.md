@@ -19,7 +19,7 @@ where jobs-dy-el.json is the file prepared following instructions here: https://
 
 To run over all the signal samples for *HH -> bbgg* analysis:
 ```
- fggRunJobs.py --load data/jobs-sig-hh-all.json -d OutDir -H -D -m 0 -x hhRun hhAna.py  maxEvents=-1 --no-use-tarball
+ fggRunJobs.py --load data/jobs-hh-sig-few.json -d OutDir -m 0 -x hhRun hhAna.py --no-use-tarball
 ```
 (type ```fggRunJobs.py --help``` to see what all those options mean).
 
@@ -31,6 +31,9 @@ You may close the job watcher (Ctrl-C, not sure if this works though...), and ch
 ```
 fggRunJobs.py --load <task_folder>/config.json --summary
 ```
+
+In order to run without flashgg tools (for testing purposes), simply do:
+```hhRun hhAna.py```
 
 ## How to create your own analyzer:
  * Write _src/MyAna.cc_ and _interface/MyAna.h_ files. It is a good idea to inherit it from DummyAnalyzer (see my other analyzers: GenAna, ZgammaAna), but this is not necessary.

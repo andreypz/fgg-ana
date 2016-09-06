@@ -1,8 +1,7 @@
 {
     "processes" : {
         "GravitonToHHTo2B2G_M-250" : ["/GluGluToBulkGravitonToHHTo2B2G_M-250_narrow_13TeV-madgraph"],
-        "RadionToHHTo2B2G_M-300" : ["/GluGluToRadionToHHTo2B2G_M-300_narrow_13TeV-madgraph"],
-	"HH-SM": ["/GluGluToHHTo2B2G_node_SM_13TeV-madgraph"],
-        "HH-NonRes-10": ["/GluGluToHHTo2B2G_node_10_13TeV-madgraph"]                                                                                           },
+        "HH-NonRes-10": ["/GluGluToHHTo2B2G_node_10_13TeV-madgraph"]
+    },
      "cmdLine" : "maxEvents=-1 campaign=HHbbgg_Signal76X_RegVars targetLumi=1e+3"
 }

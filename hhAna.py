@@ -18,11 +18,10 @@ class bcolors:
 process = cms.Process('HHbbggAna')
 
 process.fwliteInput = cms.PSet(
-    fileNames   = cms.vstring(
-        #"root://eoscms//eos/cms/store/group/phys_higgs/cmshgg/mdonega/flashgg/RunIISpring15-50ns/Spring15BetaV2/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCUETP8M1_13TeV_Pythia8/RunIISpring15-50ns-Spring15BetaV2-v0-RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v1/150716_155016/0000/myMicroAODOutputFile_81.root",
+    fileNames   = cms.vstring (
+        "root://eoscms//eos/cms//store/group/phys_higgs/resonant_HH/RunII/MicroAOD/HHbbgg_Signal76X_RegVars/1_4_0/GluGluToBulkGravitonToHHTo2B2G_M-250_narrow_13TeV-madgraph/HHbbgg_Signal76X_RegVars-1_4_0-v0-RunIIFall15MiniAODv2-PU25nsData2015v1_76X_mcRun2_asymptotic_v12-v1/160407_152523/0000/myMicroAODOutputFile_1.root"
         #"microAOD-GJet.root"
         #"microAOD-ggH125.root"
-        "root://eoscms//eos/cms/store/group/phys_higgs/cmshgg/sethzenz/flashgg/RunIISpring15-50ns/Spring15BetaV4/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/RunIISpring15-50ns-Spring15BetaV4-v0-RunIISpring15DR74-Asympt50ns_MCRUN2_74_V9A-v2/150813_120650/0000/myMicroAODOutputFile_1.root"
 
 ), ## mandatory
     maxEvents   = cms.int32(-1),                            ## optional
@@ -39,6 +38,7 @@ import flashgg.Taggers.flashggTags_cff as flashggTags
 
 from flashgg.MetaData.JobConfig import customize
 customize.crossSections.append("$CMSSW_BASE/src/APZ/fgg-ana/data/cross_sections.json")
+#customize = JobConfig(metaDataSrc=, crossSections=["$CMSSW_BASE/src//MetaData/data/cross_sections.json", "/path/to/my/additional/cross_sections.json" ])
 customize.setDefault("maxEvents",200)
 customize.setDefault("targetLumi",10e+3)
 customize.parse()

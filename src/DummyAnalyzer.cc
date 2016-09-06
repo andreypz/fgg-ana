@@ -16,13 +16,13 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
 {
   cout<<"\t DDDDD \t Dummy is constructing you..."<<endl;
   // This is an exmple of how to use TFileService histograms:
-  //TFileDirectory subDir = fs->mkdir( "mySubDirectory" );
+  
   hists_["DummyHisto"] = fs.make<TH1F>("DummyPt"  , "pt"  ,  100,  0., 300.);
-  // This is the HistoManager class (notice, no underscore): 
+  // This is the HistoManager class (notice, no underscore):
   hists    = new HistManager(fs.getBareDirectory()->GetFile());
-
-  yields_txt_path = open_temp("/tmp", "out_cutlist", fcuts);  
-  open_temp("/tmp", "synch", fout);  
+    
+  yields_txt_path = open_temp("/tmp", "out_cutlist", fcuts);
+  open_temp("/tmp", "synch", fout);
 
   fout.precision(3); fout.setf(ios::fixed, ios::floatfield);
   red.SetCode(Color::FG_RED);
@@ -30,7 +30,7 @@ DummyAnalyzer::DummyAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   blue.SetCode(Color::FG_BLUE);
   def.SetCode(Color::FG_DEFAULT);
 
- 
+  
   W0=1;
   totEvents = 0;
   totWeights = 0;
@@ -98,7 +98,6 @@ void DummyAnalyzer::endJob(UInt_t effBase = 0)
   else W0=1;
 
 
-  
   cout<<" ** YIELDS **"<<endl;
   cout<<"n |"<<setw(45)<<" CUT DESCRIPTION \t\t|"<<" events \t"<< "Weight sum |"<<" Tot eff |"<<" cut eff |"<<endl;
   for (UInt_t n=0; n<nC; n++){
