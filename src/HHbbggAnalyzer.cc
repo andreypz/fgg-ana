@@ -19,13 +19,14 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
   useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
   diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag") ),
-  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") )
+  phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") ),
+  doNonResWeights_(cfg.getUntrackedParameter<Bool_t>("doNonResWeights") )
 {
 
   cout<<red<<"\t HHHHbbbbgggg \t Constructructor in "<<__PRETTY_FUNCTION__<<def<<endl;
 
   FHM = new FggHistMakerHHbbgg(hists);
-  tools = new bbggTools();
+  tools  = new bbggTools();
   angles = new Angles();
   bTagName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 
@@ -47,6 +48,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   flatTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
   flatTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
 
+  //if (doNonResWeights_)
+  //  flatTree->Branch("NRWeights", NRWeights, "NRWeights[1507]/F");
   // Here is all vars from bbggTools code:
   flatTree->Branch("genWeights", &genWeights);
   flatTree->Branch("genTotalWeight", &genTotalWeight, "genTotalWeight/D");
@@ -103,22 +106,38 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
     genTree->Branch("mHH",  &gen_mHH,  "mHH/D");
     genTree->Branch("ptH1", &gen_ptH1, "ptH1/D");
     genTree->Branch("ptH2", &gen_ptH2, "ptH2/D");
-    genTree->Branch("cosTheta", &gen_cosTheta, "cosTheta/D");
+    genTree->Branch("cosTheta",  &gen_cosTheta, "cosTheta/D");
     genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
 
+    if (doNonResWeights_) {
+      genTree->Branch("NRWeights", NRWeights, "NRWeights[1507]/F");
 
-    //std::string::size_type sz;   // alias of size_t
-    if (runSample_=="HH_SM") nodeFileNum=0;
-    else if (runSample_=="HH_NonRes_Box") nodeFileNum=1;
-    //else if (runSample_.find("HH_NonRes_")!=std::string::npos)
-    //cout<<runSample_.substr(10,1)<<"  "<<runSample_.substr(10,2)<<endl;
-    else if (runSample_.size()==11) nodeFileNum = stoi(runSample_.substr(10,1)); //One digit file number: 2-9
-    else if (runSample_.size()==12) nodeFileNum = stoi(runSample_.substr(10,2)); //Two digits: 10,11,12,13
-    else nodeFileNum = 99;
-    cout<<"\t sample = "<<runSample_<<"    nodeFileNum="<<nodeFileNum<<endl;
+      /* 
+      //std::string::size_type sz;   // alias of size_t
+      if (runSample_=="HH_SM") nodeFileNum=0;
+      else if (runSample_=="HH_NonRes_Box") nodeFileNum=1;
+      //else if (runSample_.find("HH_NonRes_")!=std::string::npos)
+      //cout<<runSample_.substr(10,1)<<"  "<<runSample_.substr(10,2)<<endl;
+      else if (runSample_.size()==11) nodeFileNum = stoi(runSample_.substr(10,1)); //One digit file number: 2-9
+      else if (runSample_.size()==12) nodeFileNum = stoi(runSample_.substr(10,2)); //Two digits: 10,11,12,13
+      else nodeFileNum = 99;
+      cout<<"\t sample = "<<runSample_<<"    nodeFileNum="<<nodeFileNum<<endl;
+      
+      //flatTree->Branch("file", &nodeFileNum, "file/i"); //
+      //genTree->Branch("file",  &nodeFileNum, "file/i"); //
+      */
 
-    //flatTree->Branch("file", &nodeFileNum, "file/i"); //
-    //genTree->Branch("file",  &nodeFileNum, "file/i"); //
+      std::string fileNameWei = edm::FileInPath("APZ/fgg-ana/data/weights_v1_1507_points.root").fullPath();
+      NRwFile = new TFile(fileNameWei.c_str(), "OPEN");
+      NRwFile->Print();
+
+      TList *histList = NRwFile->GetListOfKeys();
+      for (UInt_t n=0; n<1507; n++)
+	if (histList->Contains(Form("point_%i_weights",n)))
+	  NR_Wei_Hists[n] = (TH2F*)NRwFile->Get(Form("point_%i_weights",n));
+	else
+	  cout<<"This one does not existe pas: "<<n<<endl;
+    }
 
   }
 }
@@ -195,7 +214,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   //TLorentzVector gen_gamma1, gen_gamma2;
 
   if (!isRealData) {
-    //&& sdample = signal...
+    //&& sample = signal...
 
     edm::Handle<vector<reco::GenParticle> > genParts;
     event.getByLabel( myGen_, genParts );
@@ -203,10 +222,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     //TLorentzVector gen_bjet1, gen_bjet2;
     TLorentzVector gen_bQ1, gen_bQ2;
     TLorentzVector tmp;
-    TLorentzVector H1, H2;
 
     for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
-
 
       if (abs(igen->pdgId())==5 && igen->mother() && igen->mother()->pdgId()==25) {
 
@@ -231,48 +248,93 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       }
 
+      /*
+	sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
+	
+	gen_gamma1 = gen_photons[0];
+	gen_gamma2 = gen_photons[1];
+	
+	gen_bjet1 = gen_bQ1;
+	gen_bjet2 = gen_bQ2;
+	
+	FHM->SetGamma1(gen_gamma1);
+	FHM->SetGamma2(gen_gamma2);
+	
+	FHM->MakeMainHistos(0, ww, "GEN");
+    */
+    }
+    
+    if (nodesOfHH) {
+      
+      // ----
       // Save info for HH nodes samples, for re-weighting etc.
-      if (nodesOfHH) {
-	if (igen->pdgId()==25){
-	  //std::cout<<o_evt<<"  BB Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
-	  if (igen->daughter(0)->pdgId()==22)
-	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+      // ---
 
-	  if (abs(igen->daughter(0)->pdgId())==5)
+      TLorentzVector H1, H2;
+      UInt_t nH = 0;
+      
+      for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
+	
+	if (igen->pdgId()==25 && igen->isHardProcess()){
+	  
+	  std::cout<<eventNumber<<"  Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()
+		   <<"\n \t Is Hard ="<<igen->isHardProcess()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
+	  if (nH==0)
+	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass()); 	  
+	  if (nH==1)
 	    H2.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+	  
+	  nH++;
+	  if (nH==2) break;
+	  
+	  /*
+	    if (igen->daughter(0)->pdgId()==22)
+	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+	    
+	    if (abs(igen->daughter(0)->pdgId())==5)
+	    H2.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
+	  */
 	}
       }
+
       gen_ptH1 = H1.Pt();
       gen_ptH2 = H2.Pt();
       gen_mHH  = (H1+H2).M();
-      gen_cosTheta = angles->getCosThetaStar_CS(H1,H2,3500);
-
+      gen_cosTheta = angles->getCosThetaStar_CS(H1,H2,6500);
+      
       // Another version of costheta star:
       TLorentzVector P1boost = H1; // take one higgs
       TLorentzVector P12 = H1 + H2; // this is the total vectorial momenta of the system
       P1boost.Boost(-P12.BoostVector());
       gen_cosTheta2 = P1boost.CosTheta(); // this is the costTheta
+      
+      hists->fill1DHist(fabs(gen_cosTheta2)-fabs(gen_cosTheta), "diffCosThetaStarrr",
+			";|#cos{#theta*}^{1}| - |#cos{#theta*}^{2}|", 100,-0.01,0.01, 1, "GEN");
+      hists->fill1DHist(H1.M(), "gen_mH1", "m(H_{1})", 100,120,130, 1, "GEN");
+      hists->fill1DHist(H2.M(), "gen_mH2", "m(H_{2})", 100,120,130, 1, "GEN");
+      hists->fill1DHist(P12.Pt(), "gen_HH_PT", "p_{T}(HH)", 100,0,400, 1, "GEN");
+      
+      if (doNonResWeights_ && nodesOfHH){
+	for (UInt_t n=0; n<1507; n++){
+	  if (n==324 || n==910 || n==985 || n==990){
+	    // The points above do not exist in the input file provided by Alexandra (and wont ever be added)
+	    
+	    //cout<<"This one was not existing in the input file: "<<n<<endl;
+	    NRWeights[n]=1;
+	  }
+	  else {
+	    UInt_t binNum = NR_Wei_Hists[n]->FindBin(gen_mHH, fabs(gen_cosTheta));
+	    NRWeights[n]  = NR_Wei_Hists[n]->GetBinContent(binNum);
+	    // Just print out for one n:
+	    //if (DEBUG && n==100) cout<<n<<" **  mHH = "<<gen_mHH<<"   cosT*="<<fabs(gen_cosTheta)
+	    //<<"  bin="<<binNum<<" wei="<<NRWeights[n]<<endl;
+	  }
+	}
+	genTree->Fill();
+      }
     }
-
-    if (nodesOfHH) genTree->Fill();
-
-    /*
-    sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
-
-    gen_gamma1 = gen_photons[0];
-    gen_gamma2 = gen_photons[1];
-
-    gen_bjet1 = gen_bQ1;
-    gen_bjet2 = gen_bQ2;
-
-    FHM->SetGamma1(gen_gamma1);
-    FHM->SetGamma2(gen_gamma2);
-
-    FHM->MakeMainHistos(0, ww, "GEN");
-    */
-
   }
-
+    
   vector<TLorentzVector> myLeptons, myPhotons;
 
 
@@ -745,11 +807,11 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     leadingJet = bJets[ind1].p4();
     leadingJet_bDis = bJets[ind1].bDiscriminator(bTagName);
     leadingJet_flavour = bJets[ind1].partonFlavour();
-    
+
     subleadingJet = bJets[ind2].p4();
     subleadingJet_bDis = bJets[ind2].bDiscriminator(bTagName);
     subleadingJet_flavour = bJets[ind2].partonFlavour();
-      
+
     dijetCandidate   = leadingJet + subleadingJet;
     diHiggsCandidate = diphotonCandidate + dijetCandidate;
 

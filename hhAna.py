@@ -78,6 +78,10 @@ process.HHbbggAnalyzer = cms.PSet(
     # (Only used if useDiPhotons==False...)
     phoIDtype = cms.untracked.uint32(3),
 
+    # Apply (or not) the Non-Resonant weights
+    # Only ran on HH signal samples
+    doNonResWeights = cms.untracked.bool(True),
+
     #phoISOcutEB=param._phoISOlooseEB,
     #phoISOcutEE=param._phoISOlooseEE,
     #phoIDcutEB =param._phoIDlooseEB,
@@ -104,7 +108,6 @@ process.HHbbggAnalyzer = cms.PSet(
     genTag      = cms.InputTag('flashggPrunedGenParticles'),
     #inputTagJets= flashggTags.UnpackedJetCollectionVInputTag,
     lumiWeight = cms.double(1.),
-
     runSample = cms.untracked.string(sample),
 
 )

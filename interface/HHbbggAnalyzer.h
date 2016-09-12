@@ -54,6 +54,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
 
+  flashgg::GlobalVariablesDumper* globVar_;
+
   //Tree objects
   TTree *flatTree, *genTree;
   Char_t    o_category;
@@ -87,6 +89,12 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   UInt_t nodeFileNum;
   Bool_t nodesOfHH;
   Double_t gen_mHH, gen_ptH1, gen_ptH2, gen_cosTheta, gen_cosTheta2;
+
+  TFile * NRwFile;
+  TH2F * NR_Wei_Hists[1507];
+  Float_t NRWeights[1507];
+
+
   Angles *angles;
   string bTagName;
   edm::InputTag rhoFixedGrid_;
@@ -105,9 +113,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Bool_t useDiPhotons_;
   edm::InputTag diPhotons_;
   UInt_t phoIDtype_;
-
-  flashgg::GlobalVariablesDumper* globVar_;
-
+  Bool_t doNonResWeights_;
 };
 
 
