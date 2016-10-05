@@ -17,13 +17,13 @@ Now, that you have it compiled, enjoy by running:
 ```
 where jobs-dy-el.json is the file prepared following instructions here: https://github.com/cms-analysis/flashgg/tree/master/MetaData
 
-To run over all the signal samples for *HH -> bbgg* analysis:
+To run over a few signal samples of *HH -> bbgg* analysis:
 ```
  fggRunJobs.py --load data/jobs-hh-sig-few.json -d OutDir -m 0 -x hhRun hhAna.py --no-use-tarball
 ```
-(type ```fggRunJobs.py --help``` to see what all those options mean).
+(type ```fggRunJobs.py --help``` to see what do all those options mean).
 
-Submit the whole thing to LSF (must be on lxplus and make sure to execute this: ```voms-proxy-init --voms cms --valid 168:00```):
+Submit the whole thing to LSF (must be on lxplus and make sure to execute ```voms-proxy-init --voms cms --valid 168:00``` prior to that):
 ```
 fggRunJobs.py --load data/jobs-sig-hh-all.json -H -D -m 1 -d OutDir -x hhRun hhAna.py -n 2 -q 1nh
 ```

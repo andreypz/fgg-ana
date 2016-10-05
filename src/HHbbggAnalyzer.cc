@@ -44,10 +44,13 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   // These are actually for Limit trees (can't we have them in one single tree)?
   flatTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
   flatTree->Branch("evWeight", &o_weight, "o_weight/D");
-  flatTree->Branch("mjj", &o_bbMass, "o_bbMass/D");
-  flatTree->Branch("mgg", &o_ggMass, "o_ggMass/D");
+  flatTree->Branch("mjj",  &o_bbMass, "o_bbMass/D");
+  flatTree->Branch("mgg",  &o_ggMass, "o_ggMass/D");
   flatTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
 
+  flatTree->Branch("gen_mHH",      &gen_mHH,      "gen_mHH/D");
+  flatTree->Branch("gen_cosTheta", &gen_cosTheta, "gen_cosTheta/D");
+  //genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
   //if (doNonResWeights_)
   //  flatTree->Branch("NRWeights", NRWeights, "NRWeights[1507]/F");
   // Here is all vars from bbggTools code:
@@ -209,6 +212,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   dijetCandidate.SetPxPyPzE(0,0,0,0);// = leadingJet + subleadingJet;
   diHiggsCandidate.SetPxPyPzE(0,0,0,0);// = diphotonCandidate + dijetCandidate;
 
+  gen_mHH = 0;
+  gen_cosTheta = -99;
 
   std::vector<TLorentzVector> gen_photons, gen_jets;
   //TLorentzVector gen_gamma1, gen_gamma2;
@@ -277,8 +282,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	
 	if (igen->pdgId()==25 && igen->isHardProcess()){
 	  
-	  std::cout<<eventNumber<<"  Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()
-		   <<"\n \t Is Hard ="<<igen->isHardProcess()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
+	  //std::cout<<eventNumber<<"  Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()
+	  //<<"\n \t Is Hard ="<<igen->isHardProcess()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
 	  if (nH==0)
 	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass()); 	  
 	  if (nH==1)
@@ -296,44 +301,51 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	  */
 	}
       }
+      
+      if (nH==2){
 
-      gen_ptH1 = H1.Pt();
-      gen_ptH2 = H2.Pt();
-      gen_mHH  = (H1+H2).M();
-      gen_cosTheta = angles->getCosThetaStar_CS(H1,H2,6500);
-      
-      // Another version of costheta star:
-      TLorentzVector P1boost = H1; // take one higgs
-      TLorentzVector P12 = H1 + H2; // this is the total vectorial momenta of the system
-      P1boost.Boost(-P12.BoostVector());
-      gen_cosTheta2 = P1boost.CosTheta(); // this is the costTheta
-      
-      hists->fill1DHist(fabs(gen_cosTheta2)-fabs(gen_cosTheta), "diffCosThetaStarrr",
-			";|#cos{#theta*}^{1}| - |#cos{#theta*}^{2}|", 100,-0.01,0.01, 1, "GEN");
-      hists->fill1DHist(H1.M(), "gen_mH1", "m(H_{1})", 100,120,130, 1, "GEN");
-      hists->fill1DHist(H2.M(), "gen_mH2", "m(H_{2})", 100,120,130, 1, "GEN");
-      hists->fill1DHist(P12.Pt(), "gen_HH_PT", "p_{T}(HH)", 100,0,400, 1, "GEN");
-      
-      if (doNonResWeights_ && nodesOfHH){
-	for (UInt_t n=0; n<1507; n++){
-	  if (n==324 || n==910 || n==985 || n==990){
-	    // The points above do not exist in the input file provided by Alexandra (and wont ever be added)
-	    
-	    //cout<<"This one was not existing in the input file: "<<n<<endl;
-	    NRWeights[n]=1;
+	gen_ptH1 = H1.Pt();
+	gen_ptH2 = H2.Pt();
+	gen_mHH  = (H1+H2).M();
+	gen_cosTheta = angles->getCosThetaStar_CS(H1,H2,6500);
+	
+	// Another version of costheta star:
+	TLorentzVector P1boost = H1; // take one higgs
+	TLorentzVector P12 = H1 + H2; // this is the total vectorial momenta of the system
+	P1boost.Boost(-P12.BoostVector());
+	gen_cosTheta2 = P1boost.CosTheta(); // this is the costTheta
+	
+	hists->fill1DHist(fabs(gen_cosTheta2)-fabs(gen_cosTheta), "diffCosThetaStarrr",
+			  ";|#cos{#theta*}^{1}| - |#cos{#theta*}^{2}|", 100,-0.01,0.01, 1, "GEN");
+	hists->fill1DHist(H1.M(), "gen_mH1", "m(H_{1})", 100,120,130, 1, "GEN");
+	hists->fill1DHist(H2.M(), "gen_mH2", "m(H_{2})", 100,120,130, 1, "GEN");
+	hists->fill1DHist(P12.Pt(), "gen_HH_PT", "p_{T}(HH)", 100,0,400, 1, "GEN");
+	
+	if (doNonResWeights_ && nodesOfHH){
+	  for (UInt_t n=0; n<1507; n++){
+	    if (n==324 || n==910 || n==985 || n==990){
+	      // The points above do not exist in the input file provided by Alexandra (and wont ever be added)
+	      
+	      //cout<<"This one was not existing in the input file: "<<n<<endl;
+	      NRWeights[n]=1;
+	    }
+	    else {
+	      UInt_t binNum = NR_Wei_Hists[n]->FindBin(gen_mHH, fabs(gen_cosTheta));
+	      NRWeights[n]  = NR_Wei_Hists[n]->GetBinContent(binNum);
+	      // Just print out for one n:
+	      //if (DEBUG && n==100) cout<<n<<" **  mHH = "<<gen_mHH<<"   cosT*="<<fabs(gen_cosTheta)
+	      //<<"  bin="<<binNum<<" wei="<<NRWeights[n]<<endl;
+	    }
 	  }
-	  else {
-	    UInt_t binNum = NR_Wei_Hists[n]->FindBin(gen_mHH, fabs(gen_cosTheta));
-	    NRWeights[n]  = NR_Wei_Hists[n]->GetBinContent(binNum);
-	    // Just print out for one n:
-	    //if (DEBUG && n==100) cout<<n<<" **  mHH = "<<gen_mHH<<"   cosT*="<<fabs(gen_cosTheta)
-	    //<<"  bin="<<binNum<<" wei="<<NRWeights[n]<<endl;
-	  }
+	  genTree->Fill();
 	}
-	genTree->Fill();
+      } // if nH==2
+      else {
+	throw cms::Exception("Non Res Nodes")<<"Number of Higges found is not equal 2; nH = "<<nH;
       }
-    }
-  }
+	     
+    }  //End of NodeOfHH
+  }  // End of isRealData
     
   vector<TLorentzVector> myLeptons, myPhotons;
 
