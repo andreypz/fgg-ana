@@ -102,7 +102,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   // Inputs for Constructor:
   // ORDER MATTERS!
   // std::vector<edm::InputTag> inputTagJets_;
-  edm::InputTag vertexes_;
+  //edm::InputTag vertexes_;
   std::vector<std::string> myTriggers_;
   std::vector<double> phoIDcutEB_;
   std::vector<double> phoIDcutEE_;

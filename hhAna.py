@@ -80,7 +80,7 @@ process.HHbbggAnalyzer = cms.PSet(
 
     # Apply (or not) the Non-Resonant weights
     # Only ran on HH signal samples
-    doNonResWeights = cms.untracked.bool(True),
+    doNonResWeights = cms.untracked.bool(False),
 
     #phoISOcutEB=param._phoISOlooseEB,
     #phoISOcutEE=param._phoISOlooseEE,

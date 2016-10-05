@@ -10,7 +10,7 @@
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
-  vertexes_( cfg.getParameter<edm::InputTag> ( "vertexes" ) ),
+  //vertexes_( cfg.getParameter<edm::InputTag> ( "vertexes" ) ),
   myTriggers_(cfg.getUntrackedParameter<std::vector<std::string> >("myTriggers")),
   //inputTagJets_(cfg.getParameter<std::vector<edm::InputTag> >( "inputTagJets" ) ),
   phoIDcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEB") ),
@@ -193,18 +193,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   const double rhoFixedGrd = *( rhoHandle.product() );
   //const double rhoFixedGrd = globVar_->valueOf(globVar_->indexOf("rho"));
 
-  edm::Handle<reco::VertexCollection> vertexes;
-  event.getByLabel( vertexes_, vertexes );
-
-  nvtx2=0;
-  for(reco::VertexCollection::const_iterator iVtx = vertexes->begin(); iVtx != vertexes->end(); ++iVtx){
-    reco::Vertex myVtx = reco::Vertex(*iVtx);
-    if(!myVtx.isValid() || myVtx.isFake()) continue;
-    if (fabs(myVtx.z()) > 24) continue;
-    if (myVtx.ndof()<4) continue;
-    if (myVtx.position().rho()>2) continue;
-    ++nvtx2;
-  }
 
   FHM->Reset(rhoFixedGrd, 1, eventNumber);
   tools->setRho(rhoFixedGrd);
@@ -373,6 +361,21 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   event.getByLabel(edm::InputTag("offlineSlimmedPrimaryVertices"), primaryVtcs);
   if (primaryVtcs->size()<1) return;
   const edm::Ptr<reco::Vertex> CandVtx(primaryVtcs, 0);
+
+  nvtx2=0;
+  for(reco::VertexCollection::const_iterator iVtx = primaryVtcs->begin(); iVtx != primaryVtcs->end(); ++iVtx){
+    reco::Vertex myVtx = reco::Vertex(*iVtx);
+    if(!myVtx.isValid() || myVtx.isFake()) continue;
+    if (fabs(myVtx.z()) > 24) continue;
+    if (myVtx.ndof()<4) continue;
+    if (myVtx.position().rho()>2) continue;
+    ++nvtx2;
+  }
+
+
+  // --------
+  // Di-Photons
+  // ---------
 
   edm::Handle<std::vector<flashgg::DiPhotonCandidate> > diPhotons;
   event.getByLabel(diPhotons_, diPhotons);
