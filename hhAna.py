@@ -104,9 +104,8 @@ process.HHbbggAnalyzer = cms.PSet(
     muonTag     = cms.InputTag('flashggSelectedMuons'),
     electronTag = cms.InputTag('flashggSelectedElectrons'),
     photonTag   = cms.InputTag('flashggPhotons'),
-    #genTag      = cms.InputTag('prunedGenParticles'),
     genTag      = cms.InputTag('flashggPrunedGenParticles'),
-    #inputTagJets= flashggTags.UnpackedJetCollectionVInputTag,
+    vertexes   = cms.InputTag('offlineSlimmedPrimaryVertices'),
     lumiWeight = cms.double(1.),
     runSample = cms.untracked.string(sample),
 

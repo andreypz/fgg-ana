@@ -10,6 +10,7 @@
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
+  vertexes_( cfg.getParameter<edm::InputTag> ( "vertexes" ) ),
   myTriggers_(cfg.getUntrackedParameter<std::vector<std::string> >("myTriggers")),
   //inputTagJets_(cfg.getParameter<std::vector<edm::InputTag> >( "inputTagJets" ) ),
   phoIDcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEB") ),
@@ -33,7 +34,6 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
 
   globVar_ = new flashgg::GlobalVariablesDumper(cfg);
-
 
   flatTree = fs.make<TTree>("bbggSelectionTree","Flat tree for HH->bbgg analysis");
   std::map<std::string, std::string> replacements; // It's not doing nothing..
@@ -193,13 +193,28 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   const double rhoFixedGrd = *( rhoHandle.product() );
   //const double rhoFixedGrd = globVar_->valueOf(globVar_->indexOf("rho"));
 
+  edm::Handle<reco::VertexCollection> vertexes;
+  event.getByLabel( vertexes_, vertexes );
+
+  nvtx2=0;
+  for(reco::VertexCollection::const_iterator iVtx = vertexes->begin(); iVtx != vertexes->end(); ++iVtx){
+    reco::Vertex myVtx = reco::Vertex(*iVtx);
+    if(!myVtx.isValid() || myVtx.isFake()) continue;
+    if (fabs(myVtx.z()) > 24) continue;
+    if (myVtx.ndof()<4) continue;
+    if (myVtx.position().rho()>2) continue;
+    ++nvtx2;
+  }
+
   FHM->Reset(rhoFixedGrd, 1, eventNumber);
   tools->setRho(rhoFixedGrd);
 
   isSignal = 0;
   isPhotonCR = 0;
   CosThetaStar = -999;
-  //    nvtx = 0;
+  nvtx = globVar_->valueOf("nvtx");
+  //if (nvtx!=nvtx2) cout<<"\t nvtx = "<< nvtx<<" nvtx2 = "<<nvtx2<<endl;;
+  
   diphotonCandidate.SetPxPyPzE(0,0,0,0);// = diphoCand->p4();
   leadingPhoton.SetPxPyPzE(0,0,0,0);// = diphoCand->leadingPhoton()->p4();
   subleadingPhoton.SetPxPyPzE(0,0,0,0);// = diphoCand->subLeadingPhoton()->p4();
@@ -361,7 +376,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
   edm::Handle<std::vector<flashgg::DiPhotonCandidate> > diPhotons;
   event.getByLabel(diPhotons_, diPhotons);
-
+  
+  //vector<edm::Ptr<flashgg::DiPhotonCandidate>> diPhotons = tools_.DiPhoton76XPreselection(AllDiPhotons, myTriggerResults);
+  
   // This is to store the selected di-photons:
   std::vector<flashgg::DiPhotonCandidate> myDiPho;
 
@@ -534,6 +551,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   // TRIGGER
   //---------
 
+  /*
   std::vector<int> myTriggerResults;
   if(myTriggers_.size() > 0){
     edm::Handle<edm::TriggerResults> trigResults;
@@ -554,7 +572,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     if(!accepted) return;
   }
-
+  */
+  
   CountEvents(2, "HLT di-photon Triggers",ww,fcuts);
   FillHistoCounts(2, ww);
 

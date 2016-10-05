@@ -81,7 +81,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   int leadingPhotonEVeto, subleadingPhotonEVeto;
   int leadingJet_flavour, subleadingJet_flavour;
   int isSignal, isPhotonCR;
-  //    int nvtx;
+  int nvtx, nvtx2;
 
   // End of tree objects
 
@@ -101,7 +101,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
 
   // Inputs for Constructor:
   // ORDER MATTERS!
-  //std::vector<edm::InputTag> inputTagJets_;
+  // std::vector<edm::InputTag> inputTagJets_;
+  edm::InputTag vertexes_;
   std::vector<std::string> myTriggers_;
   std::vector<double> phoIDcutEB_;
   std::vector<double> phoIDcutEE_;
