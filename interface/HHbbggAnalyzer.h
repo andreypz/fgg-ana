@@ -5,8 +5,8 @@
 
 #include "FggHistMakerHHbbgg.h"
 #include "flashgg/bbggTools/interface/bbggTools.h"
+#include "flashgg/bbggTools/interface/bbggJetRegression.h"
 #include "flashgg/DataFormats/interface/Jet.h"
-
 #include "flashgg/Taggers/interface/GlobalVariablesDumper.h"
 
 #include "TTree.h"
@@ -53,7 +53,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
  private:
   FggHistMakerHHbbgg *FHM;
   bbggTools *tools;
-
+  bbggJetRegression *jetReg;
+  
   flashgg::GlobalVariablesDumper* globVar_;
 
   //Tree objects
@@ -119,6 +120,8 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Bool_t useDiPhotons_;
   edm::InputTag diPhotons_;
   UInt_t phoIDtype_;
+  Bool_t doBJetRegression_;
+  edm::FileInPath bRegFile_;
   Bool_t doNonResWeights_;
 };
 

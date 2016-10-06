@@ -68,20 +68,23 @@ else: sample='Noname'
 process.HHbbggAnalyzer = cms.PSet(
     ## input specific for this analyzer
 
-    # 1 - Default; 2 - Alternative
+    # cutFlow: 1 - Default; 2 - Alternative
     cutFlow = cms.untracked.uint32(1),
     useDiPhotons = cms.untracked.bool(True),
     diPhotonTag  = cms.InputTag('flashggDiPhotons'),
 
     # 1 - Cut Based XX WP; 2 Cut based from PAT object; 3 - MVA ID from Egamma;
     # 4 - Hgg MVA ID; 5 - High Pt ID to be implementd (but not sure if it's available)
-    # (Only used if useDiPhotons==False...)
+    #
     phoIDtype = cms.untracked.uint32(3),
 
     # Apply (or not) the Non-Resonant weights
     # Only ran on HH signal samples
     doNonResWeights = cms.untracked.bool(False),
 
+    # Do b-jet energy regression
+    doBJetRegression = cms.untracked.bool(True),
+    bRegFile = cms.untracked.FileInPath("flashgg/bbggTools/data/BRegression/BDTG_16plus2_jetGenJet_nu_7_6.weights.xml"),
     #phoISOcutEB=param._phoISOlooseEB,
     #phoISOcutEE=param._phoISOlooseEE,
     #phoIDcutEB =param._phoIDlooseEB,

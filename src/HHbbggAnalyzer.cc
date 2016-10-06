@@ -2,11 +2,12 @@
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/Math/interface/deltaR.h"
-
-//#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "DataFormats/PatCandidates/interface/MET.h"
 
 
 //typedef std::pair<std::string,bool> IdPair;
+const UInt_t hisEVTS[] = {9250,31064};
+Int_t evSize = sizeof(hisEVTS)/sizeof(int);
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
   DummyAnalyzer::DummyAnalyzer(cfg, fs),
@@ -25,6 +26,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
   diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag") ),
   phoIDtype_(cfg.getUntrackedParameter<UInt_t>("phoIDtype") ),
+  doBJetRegression_(cfg.getUntrackedParameter<Bool_t>("doBJetRegression") ),
+  bRegFile_(cfg.getUntrackedParameter<edm::FileInPath>("bRegFile") ),
   doNonResWeights_(cfg.getUntrackedParameter<Bool_t>("doNonResWeights") )
 {
 
@@ -33,6 +36,10 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   FHM = new FggHistMakerHHbbgg(hists);
   tools  = new bbggTools();
   angles = new Angles();
+  jetReg = new bbggJetRegression();
+
+  jetReg->SetupRegression("BDTG method", bRegFile_.fullPath().data());
+
   bTagName = "pfCombinedInclusiveSecondaryVertexV2BJetTags";
 
   rhoFixedGrid_ = edm::InputTag( "fixedGridRhoAll" ) ;
@@ -377,15 +384,23 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   // TRIGGER
   //---------
 
-    if(myTriggers_.size() > 0){
-      edm::Handle<edm::TriggerResults> trigResults;
-      event.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), trigResults);
-      const edm::TriggerNames &names = event.triggerNames(*trigResults);
-      
-      myTriggerResults = tools->TriggerSelection(myTriggers_, names, trigResults);
-    }
+  if(myTriggers_.size() > 0){
+    edm::Handle<edm::TriggerResults> trigResults;
+    event.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), trigResults);
+    const edm::TriggerNames &names = event.triggerNames(*trigResults);
 
-  
+    myTriggerResults = tools->TriggerSelection(myTriggers_, names, trigResults);
+  }
+
+
+  CountEvents(1, "HLT di-photon Triggers",ww,fcuts);
+  FillHistoCounts(1, ww);
+
+  for(Int_t ev=0; ev<evSize;ev++){
+    if (eventNumber==hisEVTS[ev])
+      {cout<<"First  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	break;}}
+
   // --------
   // Di-Photon selection
   // ---------
@@ -456,11 +471,11 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
 	// Cut on the value
 	passID = (( p1->isEB() && p1->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.374 ) ||
-		  ( p1->isEE() && p1->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.472 )); // Def: 0.336
+		  ( p1->isEE() && p1->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.336 ));
 
 	passID = (passID &&
 		  (( p2->isEB() && p2->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.374 ) ||
-		   ( p2->isEE() && p2->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.472 )));
+		   ( p2->isEE() && p2->userFloat("PhotonMVAEstimatorRun2Spring15NonTrig25nsV2p1Values") > 0.336 )));
 
 	// Use the boolean
 	//passID = (p1->photonID("mvaPhoID-Spring15-25ns-nonTrig-V2p1-wp90") &&
@@ -564,21 +579,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     }
   }
 
-
-  if (diPhotons->size()<1) return;
-
-  CountEvents(1, "Di-Photon exists",ww,fcuts);
-  FillHistoCounts(1, ww);
-
-  CountEvents(2, "HLT di-photon Triggers",ww,fcuts);
-  FillHistoCounts(2, ww);
-
-
-  if (!kinema) return;
-  CountEvents(3, "Kin selection of di-photon",ww,fcuts);
-  FillHistoCounts(3, ww);
-
-
   // -----------
   // SET PHOTONS
   //------------
@@ -590,8 +590,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   if (useDiPhotons_){
     if (myDiPho.size()<1) return;
 
-    CountEvents(4, "Photons pass ID",ww,fcuts);
-    FillHistoCounts(4, ww);
+    CountEvents(2, "Di-Photon exists",ww,fcuts);
+    FillHistoCounts(2, ww);
+
+    if (!kinema) return;
+    CountEvents(3, "Kin selection of di-photon",ww,fcuts);
+    FillHistoCounts(3, ww);
+
 
 
     const flashgg::Photon *p1, *p2;
@@ -624,8 +629,20 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     if (myPhotons.size()<2) return;
     gamma1 = myPhotons[0];
     gamma2 = myPhotons[1];
+
+
+    CountEvents(2, "Two photons pass ID",ww,fcuts);
+    FillHistoCounts(2, ww);
+
+
   }
 
+    for(Int_t ev=0; ev<evSize;ev++){
+      if (eventNumber==hisEVTS[ev])
+      {cout<<"\t Second  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	cout<<"DiPho information:"<<endl;
+	cout<<"mgg ="<<myDiPho[0].mass()<<"  pt="<<myDiPho[0].pt()<<endl;
+	break;}}
 
   // ---------
   //  JETS
@@ -639,16 +656,41 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   TLorentzVector bjet1, bjet2; // Those are as well
   UInt_t ind1=99, ind2 =99;    // Using these indexes to order two jets by Pt
 
-  edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCol;
-  event.getByLabel(jets_, jetsCol);
+  edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCols;
+  event.getByLabel(jets_, jetsCols);
+  if (jetsCols->size()<1) return;
 
-  if (jetsCol->size()<1) return;
+  UInt_t jetCollIndex = 0;
+  if (useDiPhotons_)
+    jetCollIndex = myDiPho[0].jetCollectionIndex();
+
+  std::vector<flashgg::Jet> theJets = jetsCols->at(jetCollIndex);
+
+  // -------------------
+  // B-jet energy regression
+  // ---------------
+  if(doBJetRegression_) {
+    // std::cout << "DOING REGRESSION! " << std::endl;
+
+    // First of all we need the Missing Et as an input:
+    edm::Handle<pat::METCollection> METs;
+    event.getByLabel(edm::InputTag("slimmedMETs"), METs);
+
+    if( METs->size() != 1 )
+      { std::cout << "WARNING number of MET is not equal to 1" << std::endl; }
+
+    //edm::Ptr<pat::MET> theMET = METs->ptrAt( 0 );
+    const edm::Ptr<pat::MET> theMET(METs, 0);
+    jetReg->RegressedJets(theJets, nvtx, theMET->p4() );
+
+  }  // End of b-jet regression
+
 
   UInt_t nJets=0;
-  for(UInt_t j = 0 ; j < jetsCol->at( 0 ).size() ; j++ ) {
+  for(UInt_t j = 0 ; j < theJets.size() ; j++ ) {
     nJets++;
 
-    flashgg::Jet jet = jetsCol->at(0)[j];
+    flashgg::Jet jet = theJets[j];
 
     //edm::Ptr<flashgg::Jet> jet(jetsCol, 0); Does not work
 
@@ -714,11 +756,12 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   }
   */
 
-
+  // Set up gammas for Histogramming tool:
   FHM->SetGamma1(gamma1);
   FHM->SetGamma2(gamma2);
   Float_t Mgg = (gamma1 + gamma2).M();
 
+  // Getting first two b-jets
   if (bJets.size()>=1){
     bjet1.SetPxPyPzE(bJets[0].px(), bJets[0].py(), bJets[0].pz(), bJets[0].energy());
     FHM->SetBJet1(bjet1);
@@ -732,6 +775,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
   Double_t Mtot = (gamma1 + gamma2 + bjet1 + bjet2).M();
 
+
+  // --------------------
+  // ---- Final cut flow ----
+  // ---------------------
 
   switch ( cutFlow_ ) {
   case 1 :
@@ -760,6 +807,16 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     //if (gamma1.Pt() < 30 || gamma2.Pt() < 30) return;
     //if (fabs(gamma1.Eta()) > 2.5 || fabs(gamma2.Eta()) > 2.5) return;
 
+
+    CountEvents(3, " Empty",ww,fcuts);
+    FillHistoCounts(3, ww);
+
+
+    CountEvents(4, " Empty",ww,fcuts);
+    FillHistoCounts(4, ww);
+
+
+
     if (myJets25.size()<2) return;
     CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
     FillHistoCounts(5, ww);
@@ -767,7 +824,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeNPlots(5, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
     sort(myJets25.begin(), myJets25.end(), P4SortCondition);
-
 
 
     if (runSample_=="DiPhoton"   && !(isPrompt1 & isPrompt2)) return;
@@ -778,8 +834,17 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FillHistoCounts(6, ww);
     FHM->MakeMainHistos(6, ww);
 
-
     if (bJets.size()<2) return;
+
+
+    for(Int_t ev=0; ev<evSize;ev++){
+      if (eventNumber==hisEVTS[ev])
+      {cout<<"\t\t Third  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	cout<<"Jets information:"<<endl;
+	cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
+	break;}}
+
+
 
     CountEvents(7, "Two jets with bDissc > -1",ww,fcuts);
     FillHistoCounts(7, ww);
@@ -800,6 +865,14 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     FHM->MakeNPlots(8, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
 
+    for(Int_t ev=0; ev<evSize;ev++){
+      if (eventNumber==hisEVTS[ev])
+      {cout<<"\t\t\t Fourth  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	cout<<"Jets information:"<<endl;
+	cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
+	break;}}
+
+
     CountEvents(9, "... Reserved",ww,fcuts);
     FillHistoCounts(9, ww);
     FHM->MakeMainHistos(9, ww);
@@ -810,6 +883,15 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
     FillHistoCounts(10, ww);
     FHM->MakeMainHistos(10, ww);
+
+
+    for(Int_t ev=0; ev<evSize;ev++){
+      if (eventNumber==hisEVTS[ev])
+      {cout<<"\t\t\t\t Fifth  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	cout<<"Jets information:"<<endl;
+	cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
+	break;}}
+
 
 
     // -----
@@ -863,6 +945,18 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       o_category = 1;
       flatTree->Fill();
+
+
+      for(Int_t ev=0; ev<evSize;ev++){
+	if (eventNumber==hisEVTS[ev])
+	  {cout<<"\t\t\t\t\t Sixth and Final  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	    cout<<"Jets information:"<<endl;
+	    cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
+	    break;}}
+
+
+
+
     }
 
 
@@ -881,28 +975,24 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     // Alternative  cutflow for checks and stuff
 
     if (myJets25.size()<2) return;
-    CountEvents(2, "At least two Jets w/ pT>25 (no b-tag)",ww,fcuts);
-    FillHistoCounts(2, ww);
-    FHM->MakeNPlots(2, myPhotons.size(), myJets.size(), bJets.size(), ww);
+    CountEvents(3, "At least two Jets w/ pT>25 (no b-tag)",ww,fcuts);
+    FillHistoCounts(3, ww);
+    FHM->MakeNPlots(3, myPhotons.size(), myJets.size(), bJets.size(), ww);
 
 
     if (myJets25.size()<2) return;
-    CountEvents(3, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
-    FillHistoCounts(3, ww);
-    //FHM->MakeMainHistos(3, ww);
+    CountEvents(4, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    FillHistoCounts(4, ww);
+    //FHM->MakeMainHistos(4, ww);
 
     sort(myJets25.begin(), myJets25.end(), P4SortCondition);
 
 
     if (bJets.size()<2) return;
 
-    CountEvents(4, "Two jets with bDissc > 0",ww,fcuts);
-    FillHistoCounts(4, ww);
-    FHM->MakeMainHistos(4, ww);
-
-    CountEvents(5, "Reserved",ww,fcuts);
+    CountEvents(5, "Two jets with bDissc > 0",ww,fcuts);
     FillHistoCounts(5, ww);
-    //FHM->MakeMainHistos(5, ww);
+    FHM->MakeMainHistos(5, ww);
 
 
     FHM->MakeJetPlots(bJets[0], "bJet-Lead");

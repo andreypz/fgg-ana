@@ -1,7 +1,8 @@
 {
     "processes" : {
         "GravitonToHHTo2B2G_M-250" : ["/GluGluToBulkGravitonToHHTo2B2G_M-250_narrow_13TeV-madgraph"],
-        "HH-NonRes-10": ["/GluGluToHHTo2B2G_node_10_13TeV-madgraph"]
+        "HH-NonRes-2": ["/GluGluToHHTo2B2G_node_2_13TeV-madgraph"],
+        "HH-NonRes-9": ["/GluGluToHHTo2B2G_node_9_13TeV-madgraph"]
     },
      "cmdLine" : "maxEvents=-1 campaign=HHbbgg_Signal76X_RegVars targetLumi=1e+3"
 }
