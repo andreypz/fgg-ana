@@ -108,6 +108,11 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   std::vector<double> phoIDcutEE_;
   std::vector<double> phoISOcutEB_;
   std::vector<double> phoISOcutEE_;
+
+  std::vector<double> phoISO_nhCorEB_;
+  std::vector<double> phoISO_nhCorEE_;
+  std::vector<double> phoISO_phCorEB_;
+  std::vector<double> phoISO_phCorEE_;
   //edm::EDGetTokenT<edm::View<reco::Vertex> > vertexToken_;
 
   UInt_t cutFlow_;

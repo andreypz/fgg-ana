@@ -89,8 +89,13 @@ process.HHbbggAnalyzer = cms.PSet(
 
     phoISOcutEB=param._phoISOmediumEB,
     phoISOcutEE=param._phoISOmediumEE,
+    phoISO_nhCorEB=param._nhCorrEB,
+    phoISO_nhCorEE=param._nhCorrEE,
+    phoISO_phCorEB=param._phCorrEB,
+    phoISO_phCorEE=param._phCorrEE,
     phoIDcutEB =param._phoIDmediumEB,
     phoIDcutEE =param._phoIDmediumEE,
+
 
     # In the future replace this with param._myTriggers from bbggtools:
     myTriggers=cms.untracked.vstring(

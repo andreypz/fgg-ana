@@ -17,6 +17,10 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   phoIDcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoIDcutEE") ),
   phoISOcutEB_(cfg.getUntrackedParameter<std::vector<double > >("phoISOcutEB") ),
   phoISOcutEE_(cfg.getUntrackedParameter<std::vector<double > >("phoISOcutEE") ),
+  phoISO_nhCorEB_(cfg.getUntrackedParameter<std::vector<double > >("phoISO_nhCorEB") ),
+  phoISO_nhCorEE_(cfg.getUntrackedParameter<std::vector<double > >("phoISO_nhCorEE") ),
+  phoISO_phCorEB_(cfg.getUntrackedParameter<std::vector<double > >("phoISO_phCorEB") ),
+  phoISO_phCorEE_(cfg.getUntrackedParameter<std::vector<double > >("phoISO_phCorEE") ),
   cutFlow_(cfg.getUntrackedParameter<UInt_t>("cutFlow") ),
   useDiPhotons_(cfg.getUntrackedParameter<Bool_t>("useDiPhotons") ),
   diPhotons_(cfg.getParameter<edm::InputTag>("diPhotonTag") ),
@@ -115,7 +119,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
     if (doNonResWeights_) {
       genTree->Branch("NRWeights", NRWeights, "NRWeights[1507]/F");
 
-      /* 
+      /*
       //std::string::size_type sz;   // alias of size_t
       if (runSample_=="HH_SM") nodeFileNum=0;
       else if (runSample_=="HH_NonRes_Box") nodeFileNum=1;
@@ -125,7 +129,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
       else if (runSample_.size()==12) nodeFileNum = stoi(runSample_.substr(10,2)); //Two digits: 10,11,12,13
       else nodeFileNum = 99;
       cout<<"\t sample = "<<runSample_<<"    nodeFileNum="<<nodeFileNum<<endl;
-      
+
       //flatTree->Branch("file", &nodeFileNum, "file/i"); //
       //genTree->Branch("file",  &nodeFileNum, "file/i"); //
       */
@@ -202,7 +206,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   CosThetaStar = -999;
   nvtx = globVar_->valueOf("nvtx");
   //if (nvtx!=nvtx2) cout<<"\t nvtx = "<< nvtx<<" nvtx2 = "<<nvtx2<<endl;;
-  
+
   diphotonCandidate.SetPxPyPzE(0,0,0,0);// = diphoCand->p4();
   leadingPhoton.SetPxPyPzE(0,0,0,0);// = diphoCand->leadingPhoton()->p4();
   subleadingPhoton.SetPxPyPzE(0,0,0,0);// = diphoCand->subLeadingPhoton()->p4();
@@ -258,77 +262,77 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       /*
 	sort(gen_photons.begin(), gen_photons.end(), P4SortCondition);
-	
+
 	gen_gamma1 = gen_photons[0];
 	gen_gamma2 = gen_photons[1];
-	
+
 	gen_bjet1 = gen_bQ1;
 	gen_bjet2 = gen_bQ2;
-	
+
 	FHM->SetGamma1(gen_gamma1);
 	FHM->SetGamma2(gen_gamma2);
-	
+
 	FHM->MakeMainHistos(0, ww, "GEN");
     */
     }
-    
+
     if (nodesOfHH) {
-      
+
       // ----
       // Save info for HH nodes samples, for re-weighting etc.
       // ---
 
       TLorentzVector H1, H2;
       UInt_t nH = 0;
-      
+
       for( vector<reco::GenParticle>::const_iterator igen = genParts->begin(); igen != genParts->end(); ++igen ) {
-	
+
 	if (igen->pdgId()==25 && igen->isHardProcess()){
-	  
+
 	  //std::cout<<eventNumber<<"  Higgs it is!   Pt="<<igen->pt()<<"  M="<<igen->mass()
 	  //<<"\n \t Is Hard ="<<igen->isHardProcess()<<" daug-ter = "<<igen->daughter(0)->pdgId()<<endl;
 	  if (nH==0)
-	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass()); 	  
+	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
 	  if (nH==1)
 	    H2.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
-	  
+
 	  nH++;
 	  if (nH==2) break;
-	  
+
 	  /*
 	    if (igen->daughter(0)->pdgId()==22)
 	    H1.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
-	    
+
 	    if (abs(igen->daughter(0)->pdgId())==5)
 	    H2.SetXYZM(igen->px(), igen->py(), igen->pz(), igen->mass());
 	  */
 	}
       }
-      
+
       if (nH==2){
 
 	gen_ptH1 = H1.Pt();
 	gen_ptH2 = H2.Pt();
 	gen_mHH  = (H1+H2).M();
 	gen_cosTheta = angles->getCosThetaStar_CS(H1,H2,6500);
-	
+
 	// Another version of costheta star:
 	TLorentzVector P1boost = H1; // take one higgs
 	TLorentzVector P12 = H1 + H2; // this is the total vectorial momenta of the system
 	P1boost.Boost(-P12.BoostVector());
 	gen_cosTheta2 = P1boost.CosTheta(); // this is the costTheta
-	
+
 	hists->fill1DHist(fabs(gen_cosTheta2)-fabs(gen_cosTheta), "diffCosThetaStarrr",
 			  ";|#cos{#theta*}^{1}| - |#cos{#theta*}^{2}|", 100,-0.01,0.01, 1, "GEN");
 	hists->fill1DHist(H1.M(), "gen_mH1", "m(H_{1})", 100,120,130, 1, "GEN");
 	hists->fill1DHist(H2.M(), "gen_mH2", "m(H_{2})", 100,120,130, 1, "GEN");
 	hists->fill1DHist(P12.Pt(), "gen_HH_PT", "p_{T}(HH)", 100,0,400, 1, "GEN");
-	
+
 	if (doNonResWeights_ && nodesOfHH){
 	  for (UInt_t n=0; n<1507; n++){
 	    if (n==324 || n==910 || n==985 || n==990){
 	      // The points above do not exist in the input file provided by Alexandra (and wont ever be added)
-	      
+
 	      //cout<<"This one was not existing in the input file: "<<n<<endl;
 	      NRWeights[n]=1;
 	    }
@@ -346,17 +350,13 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       else {
 	throw cms::Exception("Non Res Nodes")<<"Number of Higges found is not equal 2; nH = "<<nH;
       }
-	     
+
     }  //End of NodeOfHH
   }  // End of isRealData
-    
-  vector<TLorentzVector> myLeptons, myPhotons;
 
-
-  edm::Handle<std::vector<flashgg::Photon> > photons;
-  event.getByLabel(photons_, photons);
-
+  // ---------
   // Verteces
+  // ----------
   edm::Handle<reco::VertexCollection> primaryVtcs;
   event.getByLabel(edm::InputTag("offlineSlimmedPrimaryVertices"), primaryVtcs);
   if (primaryVtcs->size()<1) return;
@@ -373,21 +373,37 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   }
 
 
-  // --------
-  // Di-Photons
   // ---------
+  // TRIGGER
+  //---------
+
+    if(myTriggers_.size() > 0){
+      edm::Handle<edm::TriggerResults> trigResults;
+      event.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), trigResults);
+      const edm::TriggerNames &names = event.triggerNames(*trigResults);
+      
+      myTriggerResults = tools->TriggerSelection(myTriggers_, names, trigResults);
+    }
+
+  
+  // --------
+  // Di-Photon selection
+  // ---------
+  vector<TLorentzVector> myPhotons;
 
   edm::Handle<std::vector<flashgg::DiPhotonCandidate> > diPhotons;
   event.getByLabel(diPhotons_, diPhotons);
-  
-  //vector<edm::Ptr<flashgg::DiPhotonCandidate>> diPhotons = tools_.DiPhoton76XPreselection(AllDiPhotons, myTriggerResults);
-  
+
+  //std::vector<edm::Ptr<flashgg::DiPhotonCandidate>> SeldiPhotons = tools->DiPhoton76XPreselection(diPhotons, myTriggerResults);
+
   // This is to store the selected di-photons:
   std::vector<flashgg::DiPhotonCandidate> myDiPho;
 
   Bool_t kinema = false;
   if (useDiPhotons_) {
     for(std::vector<flashgg::DiPhotonCandidate>::const_iterator it=diPhotons->begin(); it!=diPhotons->end(); ++it){
+
+      if (!tools->passHgg76XPreselection(&(*it), myTriggerResults)) continue;
 
       const flashgg::Photon *p1, *p2;
       p1 = it->leadingPhoton();
@@ -414,16 +430,16 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 		   (p1->isEE() && tools->isPhoID(&(*p1), phoIDcutEE_))
 		   );
 
-	//passISO = ((p1->isEB() && tools->isPhoISO(&(*it), 0, phoISOcutEB_)) ||
-	//	   (p1->isEE() && tools->isPhoISO(&(*it), 0, phoISOcutEE_))
-	//	   );
+	passISO = ((p1->isEB() && tools->isPhoISO(&(*it), 0, phoISOcutEB_, phoISO_nhCorEB_, phoISO_phCorEB_)) ||
+		   (p1->isEE() && tools->isPhoISO(&(*it), 0, phoISOcutEE_, phoISO_nhCorEE_, phoISO_phCorEE_))
+		   );
 	// SubLeading photon:
         passID = passID && (( p2->isEB() && tools->isPhoID(&(*p2), phoIDcutEB_)) ||
 			    ( p2->isEE() && tools->isPhoID(&(*p2), phoIDcutEE_))
 			    );
-	//passISO = passISO && ((p2->isEB() && tools->isPhoISO(&(*it), 1, phoISOcutEB_)) ||
-	//		      (p2->isEE() && tools->isPhoISO(&(*it), 1, phoISOcutEE_))
-	//		      );
+	passISO = passISO && ((p2->isEB() && tools->isPhoISO(&(*it), 1, phoISOcutEB_, phoISO_nhCorEB_, phoISO_phCorEB_)) ||
+			      (p2->isEE() && tools->isPhoISO(&(*it), 1, phoISOcutEE_, phoISO_nhCorEE_, phoISO_phCorEE_))
+			      );
 
 	passID = passID && passISO;
 	break;
@@ -483,6 +499,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     }
   }
   else { // Use regular photons
+
+    edm::Handle<std::vector<flashgg::Photon> > photons;
+    event.getByLabel(photons_, photons);
+
     for(std::vector<flashgg::Photon>::const_iterator it=photons->begin(); it!=photons->end(); ++it){
       TLorentzVector tmp = TLorentzVector(it->px(), it->py(), it->pz(), it->energy());
 
@@ -550,33 +570,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   CountEvents(1, "Di-Photon exists",ww,fcuts);
   FillHistoCounts(1, ww);
 
-  // ---------
-  // TRIGGER
-  //---------
-
-  /*
-  std::vector<int> myTriggerResults;
-  if(myTriggers_.size() > 0){
-    edm::Handle<edm::TriggerResults> trigResults;
-    event.getByLabel(edm::InputTag("TriggerResults", "", "HLT"), trigResults);
-    const edm::TriggerNames &names = event.triggerNames(*trigResults);
-
-    bool accepted = 0;
-    for(unsigned int j = 0; j < myTriggers_.size(); j++){
-      for ( unsigned int i = 0; i < trigResults->size(); i++){
-	if((names.triggerName(i)).find(myTriggers_[j]) != std::string::npos ){
-	  if(trigResults->accept(i) == 1){
-	    accepted = 1;
-	    break;
-	  }
-	}
-      }
-    }
-
-    if(!accepted) return;
-  }
-  */
-  
   CountEvents(2, "HLT di-photon Triggers",ww,fcuts);
   FillHistoCounts(2, ww);
 
