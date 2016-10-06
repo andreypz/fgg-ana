@@ -38,20 +38,23 @@ else:
 ev1 = set()
 ev1More = []
 for e in t1:
-    mgg = (e.leadingPhoton+e.subleadingPhoton).Pt()
-    mjj = (e.leadingJet+e.subleadingJet).Pt()
+    mgg = (e.leadingPhoton+e.subleadingPhoton).M()
+    mjj = (e.leadingJet+e.subleadingJet).M()
     if type1==2 and not e.isSignal: continue
     ev1.add((int(e.run), int(e.event)))
-    ev1More.append((int(e.run), int(e.event), mgg, mjj, e.leadingPhoton.Pt(), e.subleadingPhoton.Pt()))
+    #ev1More.append((int(e.run), int(e.event), mgg, mjj, e.leadingPhoton.Pt(), e.subleadingPhoton.Pt()))
+    ev1More.append({'run':int(e.run), 'evt':int(e.event), 'mgg':mgg, 'mjj':mjj, 'ptg1':e.leadingPhoton.Pt(), 'ptg2':e.subleadingPhoton.Pt(),
+                    'j1pt': e.leadingJet.Pt(), 'j2pt': e.subleadingJet.Pt(),
+                    'j1-bDis': e.leadingJet_bDis, 'j2-bDis': e.subleadingJet_bDis,})
 
 ev2 = set()
 ev2More = []
 for e in t2:
-    mgg = (e.leadingPhoton+e.subleadingPhoton).Pt()
-    mjj = (e.leadingJet+e.subleadingJet).Pt()
+    mgg = (e.leadingPhoton+e.subleadingPhoton).M()
+    mjj = (e.leadingJet+e.subleadingJet).M()
     if type2==2 and not e.isSignal: continue
     ev2.add((int(e.run), int(e.event)))
-    ev2More.append((int(e.run), int(e.event), mgg, mjj, e.leadingPhoton.Pt(), e.subleadingPhoton.Pt()))
+    ev2More.append({'run':int(e.run), 'evt':int(e.event), 'mgg':mgg, 'mjj':mjj, 'ptg1':e.leadingPhoton.Pt(), 'ptg2':e.subleadingPhoton.Pt()})
 
 print 'Total events in file %s: %i' %(opt.f1, len(ev1))
 print 'Total events in file %s: %i' %(opt.f2, len(ev2))
@@ -62,8 +65,7 @@ print '\t And here is a first few of those:'
 for i,a in enumerate(ev1.difference(ev2)):
     print i, a
     for e in ev1More:
-        if e[0]==a[0] and e[1]==a[1]: print e
-        
+        if e['run']==a[0] and e['evt']==a[1]: print e        
     if i>5:
         break
 
@@ -72,6 +74,6 @@ print '\t And here is a first few of those:'
 for i,a in enumerate(ev2.difference(ev1)):
     print i, a
     for e in ev2More:
-        if e[0]==a[0] and e[1]==a[1]: print e
+        if e['run']==a[0] and e['evt']==a[1]: print e
     if i>5:
         break

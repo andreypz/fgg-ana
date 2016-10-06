@@ -6,7 +6,7 @@
 
 
 //typedef std::pair<std::string,bool> IdPair;
-const UInt_t hisEVTS[] = {9250,31064};
+const UInt_t hisEVTS[] = {33842,40479};
 Int_t evSize = sizeof(hisEVTS)/sizeof(int);
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
@@ -501,7 +501,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
       //passID = passID && tools->HggHLTpreselection(&(*it));
 
-      passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
+      //passID = passID && p1->passElectronVeto() && p2->passElectronVeto();
 
       // Z+Jets CR: reverted electron vetoes
       //passID = passID && !p1->passElectronVeto() && !p2->passElectronVeto();
@@ -634,16 +634,17 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     CountEvents(2, "Two photons pass ID",ww,fcuts);
     FillHistoCounts(2, ww);
 
-
   }
 
-    for(Int_t ev=0; ev<evSize;ev++){
-      if (eventNumber==hisEVTS[ev])
+  /*
+  for(Int_t ev=0; ev<evSize;ev++){
+    if (eventNumber==hisEVTS[ev])
       {cout<<"\t Second  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
 	cout<<"DiPho information:"<<endl;
-	cout<<"mgg ="<<myDiPho[0].mass()<<"  pt="<<myDiPho[0].pt()<<endl;
+	cout<<"mgg ="<<myDiPho[0].mass()<<"  ptDiPho="<<myDiPho[0].pt()<<endl;
 	break;}}
-
+  */
+  
   // ---------
   //  JETS
   // --------
@@ -706,9 +707,19 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     //std::cout<<jetsCol->at(0)[j].pt()<<"  from pat = "<<jet.pt()<<std::endl;
 
+
+    TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
+
+    for(Int_t ev=0; ev<evSize;ev++){
+      if (eventNumber==hisEVTS[ev])
+	{cout<<"\t Inside the Jets loop  ---> "<<eventNumber<<" <--- Found an event "<<endl;
+	  cout<<j<<" Pt="<<jet.pt()<<"  eta="<<jet.eta()<<"  bTag="<<jet.bDiscriminator(bTagName)
+	      <<" dR(g1) "<<tmp.DeltaR(gamma1)<< " dR(g2) "<<tmp.DeltaR(gamma2)<<endl;
+	  break;}}
+    
     if (jet.pt() > 25){
 
-      TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
+      // TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
       myJets.push_back(tmp);
 
       if (fabs(jet.eta()) > 2.5) continue;
@@ -720,7 +731,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       // Order the Jets by the b-discriminator value:
       //
       //Only keep the b-tagged jets:
-      if (jet.bDiscriminator(bTagName) < -1) continue;
+      if (jet.bDiscriminator(bTagName) < -50) continue;
       // Begin with putting the first jet in the array
       if (bJets.size()==0){
 	bJets.push_back(jet);
@@ -776,6 +787,17 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   Double_t Mtot = (gamma1 + gamma2 + bjet1 + bjet2).M();
 
 
+  
+  for(Int_t ev=0; ev<evSize;ev++){
+    if (eventNumber==hisEVTS[ev])
+      {cout<<"\t Second  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	cout<<"DiPho information:"<<endl;
+	cout<<"mgg ="<<myDiPho[0].mass()<<"  ptDiPho="<<myDiPho[0].pt()<<endl;
+	cout<<"bJets.size ="<<bJets.size()<<"  myJets25.size = "<<myJets25.size()<<endl;
+	break;}}
+  
+
+  
   // --------------------
   // ---- Final cut flow ----
   // ---------------------
@@ -842,6 +864,10 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       {cout<<"\t\t Third  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
 	cout<<"Jets information:"<<endl;
 	cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
+	cout<<"btag1 = "<<bJets[0].bDiscriminator(bTagName)<<" btag2="<<bJets[1].bDiscriminator(bTagName)<<endl;
+	if (bJets.size()>2)
+	  cout<<"btag3 = "<<bJets[2].bDiscriminator(bTagName)<<" pt3="<<bJets[2].pt()<<endl;
+	  
 	break;}}
 
 
@@ -876,13 +902,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     CountEvents(9, "... Reserved",ww,fcuts);
     FillHistoCounts(9, ww);
     FHM->MakeMainHistos(9, ww);
-
-
-    if ( Mbjbj < 60 || Mbjbj > 180) return;
-
-    CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
-    FillHistoCounts(10, ww);
-    FHM->MakeMainHistos(10, ww);
 
 
     for(Int_t ev=0; ev<evSize;ev++){
@@ -924,7 +943,23 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     dijetCandidate   = leadingJet + subleadingJet;
     diHiggsCandidate = diphotonCandidate + dijetCandidate;
 
-    // End.  All flatTree objects must be filled now
+    
+    flatTree->Fill();
+    // End pf Fillong.  All flatTree objects must be filled now
+
+    if ( Mbjbj < 60 || Mbjbj > 180) return;
+
+    CountEvents(10, "60 < m(jj) < 180 GeV",ww,fcuts);
+    FillHistoCounts(10, ww);
+    FHM->MakeMainHistos(10, ww);
+
+
+    for(Int_t ev=0; ev<evSize;ev++){
+      if (eventNumber==hisEVTS[ev])
+	{cout<<"\t\t\t\t\t Sixth and Final  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
+	  cout<<"Jets information:"<<endl;
+	  cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
+	  break;}}
 
     // Signal Region: High Purity
     if (bJets[0].bDiscriminator(bTagName) > 0.8 && bJets[1].bDiscriminator(bTagName) > 0.8){
@@ -933,7 +968,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FHM->MakeMainHistos(11, ww);
 
       o_category = 0;
-      flatTree->Fill();
     }
 
 
@@ -944,21 +978,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       FHM->MakeMainHistos(12, ww);
 
       o_category = 1;
-      flatTree->Fill();
-
-
-      for(Int_t ev=0; ev<evSize;ev++){
-	if (eventNumber==hisEVTS[ev])
-	  {cout<<"\t\t\t\t\t Sixth and Final  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
-	    cout<<"Jets information:"<<endl;
-	    cout<<"mjj ="<<Mbjbj<<"  pt1="<<bjet1.Pt()<<"  pt2="<<bjet2.Pt()<<endl;
-	    break;}}
-
-
-
-
     }
-
 
     // Control Region: Light Jets
     if (bJets[0].bDiscriminator(bTagName) < 0.8 && bJets[1].bDiscriminator(bTagName) < 0.8){
