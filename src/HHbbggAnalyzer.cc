@@ -644,7 +644,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	cout<<"mgg ="<<myDiPho[0].mass()<<"  ptDiPho="<<myDiPho[0].pt()<<endl;
 	break;}}
   */
-  
+
   // ---------
   //  JETS
   // --------
@@ -654,8 +654,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
   vector<TLorentzVector> myJets, myJets25;
   vector<flashgg::Jet> bJets;  // These will be ordered by b-tag score
-  TLorentzVector bjet1, bjet2; // Those are as well
-  UInt_t ind1=99, ind2 =99;    // Using these indexes to order two jets by Pt
+  TLorentzVector bjet1, bjet2; // Those are the two highest scores of b-tag
+  UInt_t ind1=99, ind2=99;     // Using these indexes to order two jets by Pt
 
   edm::Handle<std::vector<std::vector<flashgg::Jet>>> jetsCols;
   event.getByLabel(jets_, jetsCols);
@@ -691,38 +691,39 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   for(UInt_t j = 0 ; j < theJets.size() ; j++ ) {
     nJets++;
 
-    flashgg::Jet jet = theJets[j];
+    const flashgg::Jet *jet = &(theJets[j]);
 
-    //edm::Ptr<flashgg::Jet> jet(jetsCol, 0); Does not work
+    //flashgg::Jet jet = theJets[j];
+    //const flashgg::Jet *jetRef = &(jet);
 
-    //if (!tools->isJetID( &jet )) continue;
-    if (!jet.passesJetID(flashgg::JetIDLevel::Loose)) continue;
+    if (!tools->isJetID( jet )) continue;
+    //if (!jet->passesJetID(flashgg::JetIDLevel::Loose)) continue;
 
-    //std::cout<<j<<" Pass jet ID. Pt="<<jet.pt()<<std::endl;
-    //std::cout<<j<<" Does not Pass jet ID. Pt="<<jet.pt()<<std::endl;
+    //std::cout<<j<<" Pass jet ID. Pt="<<jet->pt()<<std::endl;
+    //std::cout<<j<<" Does not Pass jet ID. Pt="<<jet->pt()<<std::endl;
 
 
     // does not work in flashgg:
-    //if (!jet.passesPuJetId( need Vtx here)) continue;
+    //if (!jet->passesPuJetId( need Vtx here)) continue;
 
-    //std::cout<<jetsCol->at(0)[j].pt()<<"  from pat = "<<jet.pt()<<std::endl;
+    //std::cout<<jetsCol->at(0)[j].pt()<<"  from pat = "<<jet->pt()<<std::endl;
 
 
-    TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
+    TLorentzVector tmp = TLorentzVector(jet->px(), jet->py(), jet->pz(), jet->energy());
 
     for(Int_t ev=0; ev<evSize;ev++){
       if (eventNumber==hisEVTS[ev])
 	{cout<<"\t Inside the Jets loop  ---> "<<eventNumber<<" <--- Found an event "<<endl;
-	  cout<<j<<" Pt="<<jet.pt()<<"  eta="<<jet.eta()<<"  bTag="<<jet.bDiscriminator(bTagName)
+	  cout<<j<<" Pt="<<jet->pt()<<"  eta="<<jet->eta()<<"  bTag="<<jet->bDiscriminator(bTagName)
 	      <<" dR(g1) "<<tmp.DeltaR(gamma1)<< " dR(g2) "<<tmp.DeltaR(gamma2)<<endl;
 	  break;}}
-    
-    if (jet.pt() > 25){
 
-      // TLorentzVector tmp = TLorentzVector(jet.px(), jet.py(), jet.pz(), jet.energy());
+    if (jet->pt() > 25){
+
+      // TLorentzVector tmp = TLorentzVector(jet->px(), jet->py(), jet->pz(), jet->energy());
       myJets.push_back(tmp);
 
-      if (fabs(jet.eta()) > 2.5) continue;
+      if (fabs(jet->eta()) > 2.5) continue;
       if (tmp.DeltaR(gamma1) < 0.4 || tmp.DeltaR(gamma2) < 0.4) continue;
 
       myJets25.push_back(tmp);
@@ -731,27 +732,29 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       // Order the Jets by the b-discriminator value:
       //
       //Only keep the b-tagged jets:
-      if (jet.bDiscriminator(bTagName) < -50) continue;
+      if (jet->bDiscriminator(bTagName) < -50) continue;
       // Begin with putting the first jet in the array
       if (bJets.size()==0){
-	bJets.push_back(jet);
+	bJets.push_back(*jet);
 	continue;
       }
 
       // Now loop over all and order them by b-tag discriminator
       for (std::vector<flashgg::Jet>::const_iterator b = bJets.begin(); b!= bJets.end(); b++) {
 	auto nx = std::next(b);
-	if ( jet.bDiscriminator(bTagName) > b->bDiscriminator(bTagName)) {
-	  bJets.insert(b, jet);
+	if ( jet->bDiscriminator(bTagName) > b->bDiscriminator(bTagName)) {
+	  bJets.insert(b, *jet);
 	  break;
 	}
 	else if (nx == bJets.end()){
-	  bJets.push_back(jet);
+	  bJets.push_back(*jet);
 	  break;
 	}
       }
       // END of b-jet ordering
     }
+
+
 
   }
 
@@ -787,7 +790,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   Double_t Mtot = (gamma1 + gamma2 + bjet1 + bjet2).M();
 
 
-  
+
   for(Int_t ev=0; ev<evSize;ev++){
     if (eventNumber==hisEVTS[ev])
       {cout<<"\t Second  ---> "<<eventNumber<<" <--- Found an event after cut "<<endl;
@@ -795,9 +798,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	cout<<"mgg ="<<myDiPho[0].mass()<<"  ptDiPho="<<myDiPho[0].pt()<<endl;
 	cout<<"bJets.size ="<<bJets.size()<<"  myJets25.size = "<<myJets25.size()<<endl;
 	break;}}
-  
 
-  
+
+
   // --------------------
   // ---- Final cut flow ----
   // ---------------------
@@ -867,7 +870,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	cout<<"btag1 = "<<bJets[0].bDiscriminator(bTagName)<<" btag2="<<bJets[1].bDiscriminator(bTagName)<<endl;
 	if (bJets.size()>2)
 	  cout<<"btag3 = "<<bJets[2].bDiscriminator(bTagName)<<" pt3="<<bJets[2].pt()<<endl;
-	  
+
 	break;}}
 
 
@@ -943,7 +946,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     dijetCandidate   = leadingJet + subleadingJet;
     diHiggsCandidate = diphotonCandidate + dijetCandidate;
 
-    
+
     flatTree->Fill();
     // End pf Fillong.  All flatTree objects must be filled now
 
