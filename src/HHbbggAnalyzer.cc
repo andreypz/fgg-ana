@@ -6,7 +6,7 @@
 
 
 //typedef std::pair<std::string,bool> IdPair;
-const UInt_t hisEVTS[] = {33842,40479};
+const UInt_t hisEVTS[] = {33842,8143};
 Int_t evSize = sizeof(hisEVTS)/sizeof(int);
 
 HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs):
@@ -208,7 +208,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
   FHM->Reset(rhoFixedGrd, 1, eventNumber);
   tools->setRho(rhoFixedGrd);
 
-  isSignal = 0;
+  isSignal   = 1;
   isPhotonCR = 0;
   CosThetaStar = -999;
   nvtx = globVar_->valueOf("nvtx");

@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-import sys,argparse
+import sys,argparse, collections
 from ROOT import *
 gROOT.SetBatch()
 
@@ -10,51 +10,41 @@ parser.add_argument("--f2",  dest="f2", type=str, required=True, help="Filename 
 opt = parser.parse_args()
 
 
+Event = collections.namedtuple('Event',
+                               ['run','evt','mgg', 'mjj',
+                                'Pho1Pt','Pho2Pt',
+                                'Jet1Pt', 'Jet1bTag', 'Jet2Pt', 'Jet2bTag',])
+
+def getInfo(inFile):
+    if inFile.Get("fsDir/bbggSelectionTree"):
+        tr = inFile.Get('fsDir/bbggSelectionTree')
+    elif inFile.Get("bbggSelectionTree"):
+        tr = inFile.Get('bbggSelectionTree')
+    else:
+        print 'File', inFile.GetName(), 'does not contain expected trees with data to compare.'
+        sys.exit(0)
+
+    ev = set()
+    evData = []
+
+    for e in tr:
+        mgg = (e.leadingPhoton+e.subleadingPhoton).M()
+        mjj = (e.leadingJet+e.subleadingJet).M()
+        if not e.isSignal: continue
+        ev.add((int(e.run), int(e.event)))
+        p = Event(run = e.run, evt=e.event, mgg=mgg, mjj=mjj, Pho1Pt=e.leadingPhoton.Pt(), Pho2Pt=e.subleadingPhoton.Pt(),
+                  Jet1Pt=e.leadingJet.Pt(), Jet2Pt=e.subleadingJet.Pt(), Jet1bTag=e.leadingJet_bDis, Jet2bTag=e.subleadingJet_bDis)
+        evData.append(p)
+    return ev, evData
+
+
+
 f1 = TFile(opt.f1,'OPEN')
 f2 = TFile(opt.f2,'OPEN')
-type1 = 0
-type2 = 0
 
-if f1.Get("fsDir/bbggSelectionTree"):
-    t1 = f1.Get('fsDir/bbggSelectionTree')
-    type1=1
-elif f1.Get("bbggSelectionTree"):
-    t1 = f1.Get('bbggSelectionTree')
-    type1=2
-else:
-    print 'File', opt.f1, 'does not contain expected trees with data to compare.'
-    sys.exit(0)
-    
-if f2.Get("fsDir/bbggSelectionTree"):
-    t2 = f2.Get('fsDir/bbggSelectionTree')
-    type2 = 1
-elif f2.Get("bbggSelectionTree"):
-    t2 = f2.Get('bbggSelectionTree')
-    type2=2
-else:
-    print 'File', opt.f2, 'does not contain expected trees with data to compare.'
-    sys.exit(0)
-    
-ev1 = set()
-ev1More = []
-for e in t1:
-    mgg = (e.leadingPhoton+e.subleadingPhoton).M()
-    mjj = (e.leadingJet+e.subleadingJet).M()
-    if type1==2 and not e.isSignal: continue
-    ev1.add((int(e.run), int(e.event)))
-    #ev1More.append((int(e.run), int(e.event), mgg, mjj, e.leadingPhoton.Pt(), e.subleadingPhoton.Pt()))
-    ev1More.append({'run':int(e.run), 'evt':int(e.event), 'mgg':mgg, 'mjj':mjj, 'ptg1':e.leadingPhoton.Pt(), 'ptg2':e.subleadingPhoton.Pt(),
-                    'j1pt': e.leadingJet.Pt(), 'j2pt': e.subleadingJet.Pt(),
-                    'j1-bDis': e.leadingJet_bDis, 'j2-bDis': e.subleadingJet_bDis,})
 
-ev2 = set()
-ev2More = []
-for e in t2:
-    mgg = (e.leadingPhoton+e.subleadingPhoton).M()
-    mjj = (e.leadingJet+e.subleadingJet).M()
-    if type2==2 and not e.isSignal: continue
-    ev2.add((int(e.run), int(e.event)))
-    ev2More.append({'run':int(e.run), 'evt':int(e.event), 'mgg':mgg, 'mjj':mjj, 'ptg1':e.leadingPhoton.Pt(), 'ptg2':e.subleadingPhoton.Pt()})
+ev1,ev1More = getInfo(f1)
+ev2,ev2More = getInfo(f2)
 
 print 'Total events in file %s: %i' %(opt.f1, len(ev1))
 print 'Total events in file %s: %i' %(opt.f2, len(ev2))
@@ -65,7 +55,7 @@ print '\t And here is a first few of those:'
 for i,a in enumerate(ev1.difference(ev2)):
     print i, a
     for e in ev1More:
-        if e['run']==a[0] and e['evt']==a[1]: print e        
+        if getattr(e, 'run')==a[0] and getattr(e, 'evt')==a[1]: print e
     if i>5:
         break
 
@@ -74,6 +64,6 @@ print '\t And here is a first few of those:'
 for i,a in enumerate(ev2.difference(ev1)):
     print i, a
     for e in ev2More:
-        if e['run']==a[0] and e['evt']==a[1]: print e
+        if getattr(e, 'run')==a[0] and getattr(e, 'evt')==a[1]: print e
     if i>5:
         break
