@@ -53,8 +53,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   //flatTree->Branch("evt", &o_evt, "o_evt/l");
 
   // These are actually for Limit trees (can't we have them in one single tree)?
-  flatTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
-  flatTree->Branch("evWeight", &o_weight, "o_weight/D");
+  //flatTree->Branch("cut_based_ct", &o_category, "o_category/B"); //0: 2btag, 1: 1btag
+  //flatTree->Branch("evWeight", &o_weight, "o_weight/D");
   flatTree->Branch("mjj",  &o_bbMass, "o_bbMass/D");
   flatTree->Branch("mgg",  &o_ggMass, "o_ggMass/D");
   flatTree->Branch("mtot", &o_bbggMass, "o_bbggMass/D"); //
@@ -183,6 +183,8 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
     //ww/=W0; //Divide by the etalon, get +/-1
   }
+
+  genTotalWeight = ww;
 
   if (ww<0) count_neg++;
   else count_pos++;
