@@ -179,6 +179,7 @@ if __name__ == '__main__':
     print 'We are here. Results are=', allNorms
 
     N0 = 599000
+    #N0 = 597400 ??
 
     for n in allNorms:
         #print 'filling the hist with', n

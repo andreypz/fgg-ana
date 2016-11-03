@@ -80,6 +80,7 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   double genTotalWeight;
   unsigned int nPromptInDiPhoton;
   int leadingPhotonEVeto, subleadingPhotonEVeto;
+  int leadingJet_hadFlavour, subleadingJet_hadFlavour;
   int leadingJet_flavour, subleadingJet_flavour;
   int isSignal, isPhotonCR;
   int nvtx, nvtx2;
