@@ -47,6 +47,7 @@ class DummyAnalyzer : public edm::BasicAnalyzer {
   virtual void FillHistoCounts(Int_t n, Double_t w);
 
   static bool P4SortCondition(const TLorentzVector& p1, const TLorentzVector& p2) {return (p1.Pt() > p2.Pt());}
+  static bool fggSortCondition(const flashgg::DiPhotonCandidate& p1, const flashgg::DiPhotonCandidate& p2) {return (p1.pt() > p2.pt());}
   
  protected:
 
