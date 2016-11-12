@@ -741,14 +741,14 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       // TLorentzVector tmp = TLorentzVector(jet->px(), jet->py(), jet->pz(), jet->energy());
       myJets.push_back(tmp);
 
-      if (fabs(jet->eta()) > 2.5) continue;
+      if (fabs(jet->eta()) > 2.4) continue;
       if (tmp.DeltaR(gamma1) < 0.4 || tmp.DeltaR(gamma2) < 0.4) continue;
 
       //
       // Order the Jets by the b-discriminator value:
       //
       //Only keep the b-tagged jets:
-      if (jet->bDiscriminator(bTagName) < -50) continue;
+      if (jet->bDiscriminator(bTagName) < 0) continue;
 
       myJets25.push_back(tmp);
 
@@ -871,7 +871,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
     //tmp.SetPxPyPzE(bjet2.px(), bjet2.py(), bjet2.pz(), bjet2.energy());
     //FHM->SetBJet2(tmp);
       
-    CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    CountEvents(5, "At least two Jets w/ pT>25 and |eta|<2.4",ww,fcuts);
     FillHistoCounts(5, ww);
     FHM->MakeMainHistos(5, ww);
     FHM->MakeNPlots(5, myPhotons.size(), myJets.size(), bJets.size(), ww);
@@ -914,9 +914,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 		      "bJets_sumOfBtags",";Sum of two bTag Discriminators", 100, 0, 2.3, ww, "bJets");
 
     if (bjet1.pt() < 25 || bjet2.pt() < 25) return;
-    if (fabs(bjet1.eta()) > 2.5 || fabs(bjet2.eta()) > 2.5) return;
+    if (fabs(bjet1.eta()) > 2.4 || fabs(bjet2.eta()) > 2.4) return;
     
-    CountEvents(8, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+    CountEvents(8, "The 2 Jets pT > 25 GeV and |eta|<2.4",ww,fcuts);
     FillHistoCounts(8, ww);
     FHM->MakeMainHistos(8, ww);
     FHM->MakeNPlots(8, myPhotons.size(), myJets.size(), bJets.size(), ww);
@@ -1032,7 +1032,7 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
 
     if (myJets25.size()<2) return;
-    CountEvents(4, "At least two Jets w/ pT>25 and |eta|<2.5",ww,fcuts);
+    CountEvents(4, "At least two Jets w/ pT>25 and |eta|<2.4",ww,fcuts);
     FillHistoCounts(4, ww);
     //FHM->MakeMainHistos(4, ww);
 
@@ -1072,9 +1072,9 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 
    
     if (bjet1.pt() < 25 || bjet2.pt() < 25) return;
-    if (fabs(bjet1.eta()) > 2.5 || fabs(bjet2.eta()) > 2.5) return;
+    if (fabs(bjet1.eta()) > 2.4 || fabs(bjet2.eta()) > 2.4) return;
 
-    CountEvents(9, "The 2 Jets pT > 25 GeV and |eta|<2.5",ww,fcuts);
+    CountEvents(9, "The 2 Jets pT > 25 GeV and |eta|<2.4",ww,fcuts);
     FillHistoCounts(9, ww);
     FHM->MakeMainHistos(9, ww);
 
