@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 from optparse import OptionParser
 import sys,os,datetime,re,glob
-from colors import *
+#from colors import *
 from array import *
 from ROOT import *
 gROOT.SetBatch()
-gROOT.ProcessLine(".L ~/tdrstyle.C")
+#gROOT.ProcessLine(".L ~/tdrstyle.C")
 gROOT.LoadMacro("~/CMS_lumi.C")
-setTDRStyle()
+#setTDRStyle()
 gROOT.ForceStyle()
 TH1.SetDefaultSumw2(kTRUE)
 verbose=0
@@ -40,6 +40,36 @@ class AutoVivification(dict):
     except KeyError:
       value = self[item] = type(self)()
       return value
+
+def parseNumList(string):
+  # This function is used to pass arguments like:
+  # --points 2,4 5-20, 60, 200-400
+  # That it, it will parse all those combinations and create lists of points to run over
+
+  # print 'Input string:',string
+  chunks = re.split('[,]', string)
+  chunks = filter(None, chunks)
+  mylist = []
+  if len(chunks)==0:
+    return None
+  for ch in chunks:
+    # print '\t This chunk=', ch
+    try:
+      mylist.append(int(ch))
+      # print "It's an int. Append it"
+    except ValueError:
+      # print 'It is not an int. Try a pattern: number1-number2'
+      m = re.match(r'\d*-\d*', ch)
+      if m:
+        # print 'Matched the chunk:', ch
+        start,end = m.group().split('-')
+        mylist.extend(range(int(start),int(end)+1))
+    else:
+        raise argparse.ArgumentTypeError("'" + string + "' is not in acceptable format.")
+  # print mylist
+  return list(set(mylist))
+
+
 
 
 def setVerboseLevel(v=False):

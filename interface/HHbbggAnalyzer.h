@@ -11,6 +11,7 @@
 
 #include "TTree.h"
 #include "Angles.h"
+#include "NonResWeights.h"
 
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -92,11 +93,12 @@ class HHbbggAnalyzer : public DummyAnalyzer {
   Bool_t nodesOfHH;
   Double_t gen_mHH, gen_ptH1, gen_ptH2, gen_cosTheta, gen_cosTheta2;
 
-  TFile * NRwFile;
-  TH2F * NR_Wei_Hists[1507];
-  Float_t NRWeights[1507];
+  //TFile *NRwFile, *NRwFile2;
+  //TH2F * NR_Wei_Hists[1519];
+  Float_t NRWeights[1519];
 
 
+  NonResWeights *NRW;
   Angles *angles;
   string bTagName;
   edm::InputTag rhoFixedGrid_;

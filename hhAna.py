@@ -80,7 +80,7 @@ process.HHbbggAnalyzer = cms.PSet(
 
     # Apply (or not) the Non-Resonant weights
     # Only run on HH signal samples:
-    doNonResWeights = cms.untracked.bool(False),
+    doNonResWeights = cms.untracked.bool(True),
 
     # Do b-jet energy regression
     doBJetRegression = cms.untracked.bool(True),

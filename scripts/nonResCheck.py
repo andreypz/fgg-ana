@@ -3,20 +3,26 @@ import argparse, sys
 from ROOT import *
 gROOT.SetBatch()
 TH1.SetDefaultSumw2(kTRUE)
+sys.path.append("utils")
+import utils as u
 
 parser =  argparse.ArgumentParser(description='Ploting my plots', usage="./nonResCheck.py")
 #parser.add_argument("-f",  dest="fName", type=str, default='fName1.root', help="Filename with flat tree")
-parser.add_argument("--rewei", dest="rewei", action="store_true", default=False, help="Re-weight to exisitn nodes.")
-parser.add_argument("-n", dest="norm", type=int, default=None, help="Do morm plot of n points")
+parser.add_argument("--rewei", dest="rewei", action="store_true", default=False, help="Re-weight to existing nodes.")
+#parser.add_argument("-n", dest="norm", type=int, default=None, help="Do morm plot of n points")
+parser.add_argument('-p','--points', dest="points", default=None, type=u.parseNumList, nargs='+',
+                    help = "Choose the points in the grid to run")
 
 opt = parser.parse_args()
 
 
 chain = TChain('fsDir/GenTree')
-figDir = 'FigNodes'
-dirName = 'NonResOut2/'
+figDir = 'FigFeb02-NRW'
+dirName = 'Feb02-NRW/'
 f = {}
 h_mHH = {}
+
+u.createDir(figDir)
 
 nodes = ['2','3','4','5','6','7','8','9','10','11','12','13','SM','box']
 #nodes = ['box','2']
@@ -24,6 +30,7 @@ nodes = ['2','3','4','5','6','7','8','9','10','11','12','13','SM','box']
 c1 = TCanvas("c1","small canvas",600,600)
 c2 = TCanvas("c2","big canvas",  600,700);
 c1.cd()
+
 
 for n in nodes:
     fName = dirName+'/output_GluGluToHHTo2B2G_node_'+n+'_13TeV-madgraph.root'
@@ -63,9 +70,7 @@ def log_result(result):
     allNorms.append(result)
 
 
-
 if __name__ == '__main__':
-
 
     ## Here we will read the parameter grid
     #  and find out which benchmark node correspond to what point in the grid
@@ -95,14 +100,13 @@ if __name__ == '__main__':
     print wNumToNode
 
 
-    ## Here is the moment of truth: will the re-weighted histogramms match the one of each node before reweighting?
-
-    gROOT.ProcessLine(".L ~/tdrstyle.C")
-    setTDRStyle()
+    #gROOT.ProcessLine(".L ~/tdrstyle.C")
+    #setTDRStyle()
     #gROOT.ForceStyle()
 
-
     if opt.rewei:
+
+        ## Here is the moment of truth: will the re-weighted histogramms match the one of each node before reweighting?
 
         gStyle.SetOptStat(0)
         c2.cd()
@@ -155,14 +159,20 @@ if __name__ == '__main__':
     c1.cd()
 
 
-    if not opt.norm:
+
+    # And here we do Normalization checks.
+
+    if not opt.points:
         sys.exit(0)
-    else:
-        HowMany = opt.norm
 
     pool = Pool(processes=6)
 
-    for i in range(HowMany):
+    print opt.points
+    listOfPoints = list(set([item for sublist in opt.points for item in sublist]))
+
+    for i in listOfPoints:
+        print "Submitting %r to Pool"%i
+        print type(i)
         pool.apply_async(multiProcessIt, args = (i, ), callback = log_result)
 
     pool.close()

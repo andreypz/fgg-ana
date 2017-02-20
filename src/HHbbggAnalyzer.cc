@@ -37,6 +37,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
   tools  = new bbggTools();
   angles = new Angles();
   jetReg = new bbggJetRegression();
+  NRW    = new NonResWeights();
 
   jetReg->SetupRegression("BDTG method", bRegFile_.fullPath().data());
 
@@ -61,9 +62,8 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
 
   flatTree->Branch("gen_mHH",      &gen_mHH,      "gen_mHH/D");
   flatTree->Branch("gen_cosTheta", &gen_cosTheta, "gen_cosTheta/D");
-  //genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
   //if (doNonResWeights_)
-  //  flatTree->Branch("NRWeights", NRWeights, "NRWeights[1507]/F");
+  //flatTree->Branch("NRWeights", NRWeights, "NRWeights[1519]/F");
   // Here is all vars from bbggTools code:
   flatTree->Branch("genWeights", &genWeights);
   flatTree->Branch("genTotalWeight", &genTotalWeight, "genTotalWeight/D");
@@ -126,7 +126,7 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
     genTree->Branch("cosTheta2", &gen_cosTheta2, "cosTheta2/D");
 
     if (doNonResWeights_) {
-      genTree->Branch("NRWeights", NRWeights, "NRWeights[1507]/F");
+      genTree->Branch("NRWeights", NRWeights, "NRWeights[1519]/F");
 
       /*
       //std::string::size_type sz;   // alias of size_t
@@ -143,18 +143,41 @@ HHbbggAnalyzer::HHbbggAnalyzer(const edm::ParameterSet& cfg, TFileDirectory& fs)
       //genTree->Branch("file",  &nodeFileNum, "file/i"); //
       */
 
-      std::string fileNameWei = edm::FileInPath("APZ/fgg-ana/data/weights_v1_1507_points.root").fullPath();
-      NRwFile = new TFile(fileNameWei.c_str(), "OPEN");
+      std::string fileNameWei1 = edm::FileInPath("APZ/fgg-ana/data/weights_v1_1507_points.root").fullPath();
+      //NRwFile = new TFile(fileNameWei1.c_str(), "OPEN");
+
+      // This file includes 12 benchmark v3 weights.
+      std::string fileNameWei2 = edm::FileInPath("APZ/fgg-ana/data/weights_v3_bench12_points.root").fullPath();
+      //NRwFile2 = new TFile(fileNameWei2.c_str(), "OPEN");
+
+      NRW->LoadHists(fileNameWei1, fileNameWei2);
+      
+      /*
+      if (NRwFile->IsZombie() || NRwFile2->IsZombie() ){
+	cout<<" Input file does not exist!"<<endl;
+	exit(1);
+      }
       NRwFile->Print();
+      NRwFile2->Print();
 
       TList *histList = NRwFile->GetListOfKeys();
-      for (UInt_t n=0; n<1507; n++)
+      for (UInt_t n=0; n<1507; n++){
 	if (histList->Contains(Form("point_%i_weights",n)))
 	  NR_Wei_Hists[n] = (TH2F*)NRwFile->Get(Form("point_%i_weights",n));
 	else
 	  cout<<"This one does not existe pas: "<<n<<endl;
-    }
+      }
+      
 
+      TList *histList2 = NRwFile2->GetListOfKeys();
+      for (UInt_t n=0; n<12; n++){
+	if (histList2->Contains(Form("point_%i_weights",n)))
+	  NR_Wei_Hists[1507+n] = (TH2F*)NRwFile2->Get(Form("point_%i_weights",n));
+	else
+	  cout<<"This one does not existe pas: "<<1507+n<<endl;
+      }
+      */
+    }
   }
 }
 
@@ -342,20 +365,27 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
 	hists->fill1DHist(P12.Pt(), "gen_HH_PT", "p_{T}(HH)", 100,0,400, 1, "GEN");
 
 	if (doNonResWeights_ && nodesOfHH){
-	  for (UInt_t n=0; n<1507; n++){
+	  for (UInt_t n=0; n<1519; n++){
+
+	    NRWeights[n] = NRW->GetWeight(n, gen_mHH, gen_cosTheta); 
+
+	    /*
 	    if (n==324 || n==910 || n==985 || n==990){
 	      // The points above do not exist in the input file provided by Alexandra (and wont ever be added)
 
 	      //cout<<"This one was not existing in the input file: "<<n<<endl;
-	      NRWeights[n]=1;
+	      NRWeights[n]=0;
 	    }
 	    else {
 	      UInt_t binNum = NR_Wei_Hists[n]->FindBin(gen_mHH, fabs(gen_cosTheta));
 	      NRWeights[n]  = NR_Wei_Hists[n]->GetBinContent(binNum);
 	      // Just print out for one n:
-	      //if (DEBUG && n==100) cout<<n<<" **  mHH = "<<gen_mHH<<"   cosT*="<<fabs(gen_cosTheta)
-	      //<<"  bin="<<binNum<<" wei="<<NRWeights[n]<<endl;
+	      //if (n==100 || n==1510) 
+	      //	cout<<n<<" **  mHH = "<<gen_mHH<<"   cosT*="<<fabs(gen_cosTheta)
+	      //    <<"  bin="<<binNum<<" wei="<<NRWeights[n]<<endl;
 	    }
+
+	    */
 	  }
 	}
 	genTree->Fill();
@@ -747,7 +777,6 @@ void HHbbggAnalyzer::analyze(const edm::EventBase& event)
       //
       // Order the Jets by the b-discriminator value:
       //
-      //Only keep the b-tagged jets:
       if (jet->bDiscriminator(bTagName) < 0) continue;
 
       myJets25.push_back(tmp);
