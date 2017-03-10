@@ -1,0 +1,19 @@
+{
+    "processes" : {
+	"HH-SM": ["/GluGluToHHTo2B2G_node_SM_13TeV-madgraph"],
+	"HH-NonRes-2": ["/GluGluToHHTo2B2G_node_2_13TeV-madgraph"],
+	"HH-NonRes-3": ["/GluGluToHHTo2B2G_node_3_13TeV-madgraph"],
+	"HH-NonRes-4": ["/GluGluToHHTo2B2G_node_4_13TeV-madgraph"],
+	"HH-NonRes-5": ["/GluGluToHHTo2B2G_node_5_13TeV-madgraph"],
+	"HH-NonRes-6": ["/GluGluToHHTo2B2G_node_6_13TeV-madgraph"],
+	"HH-NonRes-7": ["/GluGluToHHTo2B2G_node_7_13TeV-madgraph"],
+	"HH-NonRes-8": ["/GluGluToHHTo2B2G_node_8_13TeV-madgraph"],
+	"HH-NonRes-9": ["/GluGluToHHTo2B2G_node_9_13TeV-madgraph"],
+	"HH-NonRes-10": ["/GluGluToHHTo2B2G_node_10_13TeV-madgraph"],
+	"HH-NonRes-11": ["/GluGluToHHTo2B2G_node_11_13TeV-madgraph"],
+	"HH-NonRes-12": ["/GluGluToHHTo2B2G_node_12_13TeV-madgraph"],
+	"HH-NonRes-13": ["/GluGluToHHTo2B2G_node_13_13TeV-madgraph"],
+	"HH-NonRes-Box": ["/GluGluToHHTo2B2G_node_box_13TeV-madgraph"]
+    },
+     "cmdLine" : "maxEvents=-1 campaign=HHbbgg_Signal76X_RegVars targetLumi=1e+3"
+}
